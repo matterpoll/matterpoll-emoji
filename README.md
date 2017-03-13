@@ -1,6 +1,6 @@
 # matterpoll-emoji
 
-Polling feature for mattermost
+Polling feature for mattermost's custom slash command.
 
 ## Setup server
 
@@ -27,7 +27,7 @@ Create a `Custome Slash Command` from Integration > Slash Commands > Add Slash C
 Typing this on mattermost
 
 ```
-/poll `What do you gys wanna grab for lunch?` :sushi: :sushi: :sushi:
+/poll `What do you gys wanna grab for lunch?` :pizza: :sushi: :fried_shrimp: :spaghetti: :apple:
 ```
 
 then posting poll comment
