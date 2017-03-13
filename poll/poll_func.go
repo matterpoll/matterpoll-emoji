@@ -50,7 +50,6 @@ func login(c *model.Client) (*model.User, error) {
 
 func post(c *model.Client, poll *PollRequest) (*model.Post, error) {
 	p := model.Post{
-		UserId:    "kaakaa",
 		ChannelId: poll.ChannelId,
 		Message:   poll.Message + " #poll",
 	}
