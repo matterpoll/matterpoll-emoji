@@ -34,4 +34,7 @@ then posting poll comment
 
 ![screen_shot](https://raw.githubusercontent.com/kaakaa/matterpoll-emoji/master/matterpoll-emoji.png)
 
+## License
+* MIT
+  * see [LICENSE](LICENSE)
 
