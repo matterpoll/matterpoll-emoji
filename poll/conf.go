@@ -2,6 +2,7 @@ package poll
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 )
 
@@ -22,5 +23,21 @@ func LoadConf(path string) (*PollConf, error) {
 	}
 	var p PollConf
 	json.Unmarshal(b, &p)
+	if err := p.validate(); err != nil {
+		return nil, err
+	}
 	return &p, nil
+}
+
+func (c *PollConf) validate() error {
+	if len(c.Host) == 0 {
+		return fmt.Errorf("Config `Host` is missing.")
+	}
+	if len(c.User.Id) == 0 {
+		return fmt.Errorf("Config `Host` is missing.")
+	}
+	if len(c.User.Password) == 0 {
+		return fmt.Errorf("Config `Host` is missing.")
+	}
+	return nil
 }
