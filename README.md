@@ -13,12 +13,12 @@ go run main.go -p 8066
 
 ## Setup mattermost
 
-Create a `Custome Slash Command` from Integration > Slash Commands > Add Slash Command.
+Create a `Custom Slash Command` from Integration > Slash Commands > Add Slash Command.
 
 * DisplayName - Arbitrary (ex. MatterPoll)
 * Description - Arbitrary (ex. Polling feature by https://github.com/kaakaa/matterpoll-emoji)
 * Command Trigger Word - `poll`
-* Request URL - http://localhost:8066
+* Request URL - http://localhost:8066/poll
 * Request Method - `POST`
 * Others - optional
 
