@@ -4,9 +4,25 @@ Polling feature for mattermost's custom slash command.
 
 ## Setup server
 
+Clone this repository.
 ```
 git clone https://github.com/kaakaa/matterpoll-emoji.git
 cd matterpoll-emoji
+```
+
+Write configuration of `matterpoll-emoji` to config.json
+```
+{
+	"host": "http://localhost:8065",  # Your Mattermost server
+	"user": {
+		"id": "bot",           # existiong account info of your Mattermost
+		"password": "botbot"   # (It's recommended create bot account.)
+	}
+}
+```
+
+Setup `matterpoll-emoji` server.
+```
 glide install
 go run main.go -p 8066
 ```
