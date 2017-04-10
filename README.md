@@ -13,7 +13,7 @@ cd matterpoll-emoji
 Write configuration of `matterpoll-emoji` to config.json
 ```
 {
-	"host": "http://localhost:8505",  # Your Mattermost server
+	"host": "http://localhost:8065",  # Your Mattermost server
 	"user": {
 		"id": "bot",           # existiong account info of your Mattermost
 		"password": "botbot"   # (It's recommended create bot account.)
