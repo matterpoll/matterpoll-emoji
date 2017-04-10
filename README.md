@@ -34,7 +34,7 @@ Create a `Custom Slash Command` from Integration > Slash Commands > Add Slash Co
 * DisplayName - Arbitrary (ex. MatterPoll)
 * Description - Arbitrary (ex. Polling feature by https://github.com/kaakaa/matterpoll-emoji)
 * Command Trigger Word - `poll`
-* Request URL - http://localhost:8066/poll
+* Request URL - http://localhost:8505/poll
 * Request Method - `POST`
 * Others - optional
 
