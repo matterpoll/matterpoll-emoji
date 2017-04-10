@@ -13,7 +13,7 @@ cd matterpoll-emoji
 Write configuration of `matterpoll-emoji` to config.json
 ```
 {
-	"host": "http://localhost:8065",  # Your Mattermost server
+	"host": "http://localhost:8505",  # Your Mattermost server
 	"user": {
 		"id": "bot",           # existiong account info of your Mattermost
 		"password": "botbot"   # (It's recommended create bot account.)
@@ -24,7 +24,7 @@ Write configuration of `matterpoll-emoji` to config.json
 Setup `matterpoll-emoji` server.
 ```
 glide install
-go run main.go -p 8066
+go run main.go -p 8505
 ```
 
 ## Setup mattermost
