@@ -9,7 +9,7 @@ import (
 	"github.com/kaakaa/matterpoll-emoji/poll"
 )
 
-var port = flag.Int("p", 8066, "port number")
+var port = flag.Int("p", 8505, "port number")
 
 func main() {
 	flag.Parse()
