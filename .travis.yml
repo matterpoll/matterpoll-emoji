@@ -2,7 +2,8 @@ language: go
 
 go:
   - 1.8.x
-
+before_install:
+  - mkdir -p $GOPATH/bin
 deploy:
   provider: releases
   skip_cleanup: true
