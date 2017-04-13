@@ -1,5 +1,7 @@
 # matterpoll-emoji
 
+[![Build Status](https://travis-ci.org/kaakaa/matterpoll-emoji.svg?branch=master)](https://travis-ci.org/kaakaa/matterpoll-emoji)
+
 Polling feature for mattermost's custom slash command.
 
 ## Setup server
