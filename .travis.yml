@@ -1,0 +1,24 @@
+language: go
+
+go:
+  - 1.8.x
+before_install:
+  - sudo add-apt-repository ppa:masterminds/glide -y
+  - sudo apt-get update -q
+  - sudo apt-get install glide -y
+  - mkdir -p $GOPATH/bin
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: "d3uTlGiWlp/lw19IeDWidty/F+Qk/rojS3q7MaWdZYJ2qS6+tLO36G1wKOpJgo9lItv10Fi55NA4+JO8sNhuH0ygIkzUMWd2IdHROlwZmsB49XpLUFwdjx
+Z4QKz/dhQDyILw7E8Jxs1Z+uZZy7HGpG8f9QWS7C+z9F1JuGirTe8IZeKfawizoOGoVy2BQ5lCH1s5Bwn9a019zV8Z0xzfQadHt0HfaFvllkwE8GsLuz8wdsA+Q6S1mJ+
+RPBwKhel3BWVt2DRhlIiluLPvyQXp+LYgB/vdfTAm/Z/lqz8sm8eoKZA7QIsQNvkAVydlqiVEduJv1fEpZm3jqr/vpEncXpPq4TGSuPbLHyR1VhjGuMqX/5AlFx9+UKne
+sDXpdfBpbFn6VNoL13E+DeqfyV8EUwXuGYWD2TgQIt0kucT2yKfsM0PCkgZtfkjiEU1/JQYTAywRFtFwa7OvIsbUqGepWdUtDryWvPU85VtfyjFDvcekmYGWSnPv1vNT7
+rWL75XtHbipjno+zkeSiyP987JP2gIvgJ62UnerSitxBj1Snv90WWIEezaOuHD0wUlz3gJ/3xkgfz6O4ZR9daY9d86eZ5idi1LzOsNRXvgGjjzER4tf0WZZU3KeB/xOrm
+VobXYwjw5zpOulnfLIGzQnZsXbgqwBCF3Wee8JRrYQWXvBlvs="
+  file_glob: true
+  file: 'dist/*.{tar.gz,zip}'
+  on:
+    tags: true
+    go: '1.8'
