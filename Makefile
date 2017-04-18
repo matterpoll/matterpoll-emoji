@@ -1,5 +1,5 @@
 NAME	 := matterpoll-emoji
-VERSION  := 0.0.1
+VERSION  := 0.0.2
 REVISION := $(shell git rev-parse --short HEAD)
 
 LDFLAGS := -ldflags="-s -w -X \"main.Version=$(VERSION)\" -X \"main.Revision=$(REVISION)\" -extldflags \"-static\""
@@ -35,6 +35,6 @@ dist: cross-build
 	cd dist && \
 	$(DIST_DIRS) cp ../LICENSE {} \; && \
 	$(DIST_DIRS) cp ../README.md {} \; && \
+	$(DIST_DIRS) cp ../config.json {} \; && \
 	$(DIST_DIRS) tar -zcf $(NAME)-$(VERSION)-{}.tar.gz {} \; && \
-	$(DIST_DIRS) zip -r $(NAME)-$(VERSION)-{}.zip {} \; && \
 	cd ..
