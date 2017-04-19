@@ -1,5 +1,5 @@
 NAME	 := matterpoll-emoji
-VERSION  := 0.0.2
+VERSION  := v0.0.2
 REVISION := $(shell git rev-parse --short HEAD)
 
 LDFLAGS := -ldflags="-s -w -X \"main.Version=$(VERSION)\" -X \"main.Revision=$(REVISION)\" -extldflags \"-static\""
@@ -19,14 +19,16 @@ deps: glide
 
 cross-build: deps
 	for os in darwin linux windows; do \
-		for arch in amd64 386; do \
-			GOOS=$$os GOARCH=$$arch CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-$$arch/$(NAME); \
-		done; \
+		GOOS=$$os GOARCH=386 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-i686/$(NAME); \
+	done 
+	for os in darwin linux windows; do \
+		GOOS=$$os GOARCH=amd64 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-x86_64/$(NAME); \
 	done 
 
 clean:
 	rm -rf bin/*
 	rm -rf vendor/*
+	rm -rf dist/*
 
 test:
 	go test -cover -v `glide novendor`
