@@ -2,34 +2,33 @@
 
 [![Build Status](https://travis-ci.org/kaakaa/matterpoll-emoji.svg?branch=master)](https://travis-ci.org/kaakaa/matterpoll-emoji)
 
-Polling feature for mattermost's custom slash command.
+Polling feature for Mattermost's custom slash command.
 
 ## Setup server
 
-Clone this repository.
+Clone this repository
 ```
 git clone https://github.com/kaakaa/matterpoll-emoji.git
 cd matterpoll-emoji
+cp .config.json config.json
 ```
-
-Write configuration of `matterpoll-emoji` to config.json
+Change parameter in `config.json` e.g.
 ```
-{
-	"host": "http://localhost:8065",  # Your Mattermost server
-	"user": {
-		"id": "bot",           # existiong account info of your Mattermost
-		"password": "botbot"   # (It's recommended create bot account.)
-	}
+"host": "http://mattermost.example.com:8065", # The URL of your Mattermost server
+  "user": {
+   "id": "bot",          # The username of an existing Mattermost account
+   "password": "botbot"  # The password of an existing Mattermost account
+ }
 }
 ```
 
-Setup `matterpoll-emoji` server.
+Setup `matterpoll-emoji` server
 ```
 glide install
 go run main.go -p 8505
 ```
 
-## Setup mattermost
+## Setup Mattermost
 
 Create a `Custom Slash Command` from Integration > Slash Commands > Add Slash Command.
 
@@ -42,7 +41,7 @@ Create a `Custom Slash Command` from Integration > Slash Commands > Add Slash Co
 
 ## Usage
 
-Typing this on mattermost
+Typing this on Mattermost
 
 ```
 /poll `What do you gys wanna grab for lunch?` :pizza: :sushi: :fried_shrimp: :spaghetti: :apple:
@@ -55,4 +54,3 @@ then posting poll comment
 ## License
 * MIT
   * see [LICENSE](LICENSE)
-
