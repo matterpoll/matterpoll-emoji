@@ -32,7 +32,7 @@ func NewPollRequest(s string) (*PollRequest, error) {
 				return nil, fmt.Errorf("Unexpected Error: ChannelID in request is empty.")
 			}
 		case "text":
-			re := regexp.MustCompile("`([^`]+)`(.+)")
+			re := regexp.MustCompile("[`|\"|']([^\"`']+)[`|\"|'] (.+)")
 			e := re.FindStringSubmatch(values[0])
 			if len(e) != 3 {
 				return nil, fmt.Errorf("Command Error: /poll `Here is description` :thumbsup: :thumbsdown:...")
