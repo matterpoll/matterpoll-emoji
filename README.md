@@ -14,7 +14,8 @@ cp .config.json config.json
 ```
 Change parameter in `config.json` e.g.
 ```
-"host": "http://mattermost.example.com:8065", # The URL of your Mattermost server
+{
+  "host": "http://mattermost.example.com:8065", # The URL of your Mattermost server
   "user": {
    "id": "bot",          # The username of an existing Mattermost account
    "password": "botbot"  # The password of an existing Mattermost account
