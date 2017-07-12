@@ -31,13 +31,13 @@ func LoadConf(path string) (*PollConf, error) {
 
 func (c *PollConf) validate() error {
 	if len(c.Host) == 0 {
-		return fmt.Errorf("Config `Host` is missing.")
+		return fmt.Errorf("Config `host` is missing")
 	}
 	if len(c.User.Id) == 0 {
-		return fmt.Errorf("Config `Host` is missing.")
+		return fmt.Errorf("Config `user.id` is missing")
 	}
 	if len(c.User.Password) == 0 {
-		return fmt.Errorf("Config `Host` is missing.")
+		return fmt.Errorf("Config `user.password` is missing")
 	}
 	return nil
 }
