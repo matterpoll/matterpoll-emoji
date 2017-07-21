@@ -15,11 +15,17 @@ func TestNewPollRequest(t *testing.T) {
 		err       error
 	}{
 		{"teamidxxxx", "channelidxxxx", "`description` :emoji1:", "description", []string{"emoji1"}, nil},
-                {"teamidxxxx", "channelidxxxx", "'description' :emoji1:", "description", []string{"emoji1"}, nil},
-                {"teamidxxxx", "channelidxxxx", "\"description\" :emoji1:", "description", []string{"emoji1"}, nil},
-		{"teamidxxxx", "channelidxxxx", "`description including space` :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
-                {"teamidxxxx", "channelidxxxx", "'description including space' :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
-                {"teamidxxxx", "channelidxxxx", "\"description including space\" :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
+    {"teamidxxxx", "channelidxxxx", "'description' :emoji1:", "description", []string{"emoji1"}, nil},
+    {"teamidxxxx", "channelidxxxx", "\"description\" :emoji1:", "description", []string{"emoji1"}, nil},
+
+    {"teamidxxxx", "channelidxxxx", "`description including space` :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
+    {"teamidxxxx", "channelidxxxx", "'description including space' :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
+    {"teamidxxxx", "channelidxxxx", "\"description including space\" :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
+
+		{"teamidxxxx", "channelidxxxx", "`description including space' :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("Command Error: /poll `Here is description` :thumbsup: :thumbsdown:...")},
+    {"teamidxxxx", "channelidxxxx", "'description including space\" :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("Command Error: /poll `Here is description` :thumbsup: :thumbsdown:...")},
+    {"teamidxxxx", "channelidxxxx", "\"description including space` :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("Command Error: /poll `Here is description` :thumbsup: :thumbsdown:...")},
+
 		{"", "channelidxxxx", "`description` :emoji1:", "", []string{}, fmt.Errorf("Unexpected Error: TeamID in request is empty.")},
 		{"teamidxxxx", "", "`description` :emoji1:", "", []string{}, fmt.Errorf("Unexpected Error: ChannelID in request is empty.")},
 		{"teamidxxxx", "channelidxxxx", "`` :emoji1:", "", []string{""}, fmt.Errorf("Command Error: /poll `Here is description` :thumbsup: :thumbsdown:...")},
@@ -34,7 +40,7 @@ func TestNewPollRequest(t *testing.T) {
 			if err != nil && tt.err != nil && err.Error() == tt.err.Error() {
 				continue
 			} else {
-				t.Fatalf("Unexpected error. Expected: %v, Actual: %v", tt.err, err)
+				t.Fatalf("Description: %v; Unexpected error. Expected: %v, Actual: %v", tt.text, tt.err, err)
 			}
 		}
 
