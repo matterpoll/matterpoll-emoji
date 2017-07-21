@@ -1,6 +1,6 @@
 package: github.com/kaakaa/matterpoll-emoji
 import:
 - package: github.com/mattermost/platform
-  version: ~3.7.0-rc4
+  version: ~4.0.1
   subpackages:
   - model
