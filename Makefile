@@ -37,6 +37,6 @@ dist: cross-build
 	cd dist && \
 	$(DIST_DIRS) cp ../LICENSE {} \; && \
 	$(DIST_DIRS) cp ../README.md {} \; && \
-	$(DIST_DIRS) cp ../config.json {} \; && \
+	$(DIST_DIRS) cp ../.config.json {} \; && \
 	$(DIST_DIRS) tar -zcf $(NAME)-$(VERSION)-{}.tar.gz {} \; && \
 	cd ..
