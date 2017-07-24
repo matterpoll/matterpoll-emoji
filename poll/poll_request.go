@@ -37,7 +37,7 @@ func NewPollRequest(s string) (*PollRequest, error) {
 				return nil, err
 			}
 		case "token":
-			if Conf.Token != values[0] {
+			if Conf.Token != "" && Conf.Token != values[0] {
 				return nil, fmt.Errorf("Token missmatch. Check you config.json")
 			}
 		}

@@ -34,9 +34,10 @@ func (c *PollConf) validate() error {
 	if len(c.Host) == 0 {
 		return fmt.Errorf("Config `host` is missing")
 	}
-        if len(c.Token) == 0 {
-                return fmt.Errorf("Config `token` is missing")
-        }
+    if len(c.Token) == 0 {
+//		Ignore this for now
+//		return fmt.Errorf("Config `token` is missing")
+	}
 	if len(c.User.Id) == 0 {
 		return fmt.Errorf("Config `user.id` is missing")
 	}
