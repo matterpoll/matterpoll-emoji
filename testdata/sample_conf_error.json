@@ -1,5 +1,6 @@
 {
 	"host": 9999,
+	"token": 1234,
 	"user": {
 		"id": "bot",
 		"password": "botbot"

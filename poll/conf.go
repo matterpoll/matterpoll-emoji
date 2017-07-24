@@ -7,8 +7,9 @@ import (
 )
 
 type PollConf struct {
-	Host string
-	User PollUser
+	Host  string
+	Token string
+	User  PollUser
 }
 
 type PollUser struct {
@@ -33,6 +34,9 @@ func (c *PollConf) validate() error {
 	if len(c.Host) == 0 {
 		return fmt.Errorf("Config `host` is missing")
 	}
+        if len(c.Token) == 0 {
+                return fmt.Errorf("Config `token` is missing")
+        }
 	if len(c.User.Id) == 0 {
 		return fmt.Errorf("Config `user.id` is missing")
 	}
