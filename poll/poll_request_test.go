@@ -36,12 +36,15 @@ func TestNewPollRequest(t *testing.T) {
 		s := fmt.Sprintf("team_id=%s&channel_id=%s&text=%s", tt.teamId, tt.channelId, tt.text)
 
 		p, err := NewPollRequest(s)
-		if err != tt.err {
-			if err != nil && tt.err != nil && err.Error() == tt.err.Error() {
-				continue
-			} else {
-				t.Fatalf("Unexpected error. Expected: %v, Actual: %v", tt.err, err)
-			}
+
+		if err != nil && tt.err == nil {
+			t.Fatalf("Test retured with error : %v but there sould be none", err)
+		}
+		if err == nil && tt.err != nil {
+			t.Fatalf("Test didnt not return with an error but it should return with %v", tt.err)
+		}
+		if err != nil && tt.err != nil {
+			continue
 		}
 
 		if p.TeamId != tt.teamId {
