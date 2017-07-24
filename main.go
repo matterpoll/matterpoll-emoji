@@ -12,6 +12,7 @@ import (
 var port = flag.Int("p", 8505, "port number")
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	flag.Parse()
 
 	c, err := poll.LoadConf("config.json")
