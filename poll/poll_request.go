@@ -36,11 +36,10 @@ func NewPollRequest(s string) (*PollRequest, error) {
 			if err != nil {
 				return nil, err
 			}
-                case "token":
-                    if Conf.Token != values[0] {
-                        return nil, fmt.Errorf("Token missmatch. Check you config.json")
-                    }
-		default:
+		case "token":
+			if Conf.Token != values[0] {
+				return nil, fmt.Errorf("Token missmatch. Check you config.json")
+			}
 		}
 	}
 	return p, nil
@@ -71,10 +70,6 @@ func parseText(text string) (string, []string, error) {
 			return "", nil, fmt.Errorf("Emoji Error: %s is not emoji format", v)
 		}
 		emojis = append(emojis, v[1:len(v)-1])
-	}
-	v := strings.Split(text, " ")
-	if len(v) < 2 {
-		return "", nil, fmt.Errorf("Error: /poll description emoji1 emoji2...")
 	}
 	return e[1], emojis, nil
 }
