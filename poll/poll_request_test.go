@@ -22,14 +22,21 @@ func TestNewPollRequest(t *testing.T) {
 		{"teamidxxxx", "channelidxxxx", "'description including space' :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
 		{"teamidxxxx", "channelidxxxx", "\"description including space\" :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
 
-		{"teamidxxxx", "channelidxxxx", "`description including space' :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("Command Error: /poll `Here is description` :thumbsup: :thumbsdown:...")},
-		{"teamidxxxx", "channelidxxxx", "'description including space\" :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("Command Error: /poll `Here is description` :thumbsup: :thumbsdown:...")},
-		{"teamidxxxx", "channelidxxxx", "\"description including space` :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("Command Error: /poll `Here is description` :thumbsup: :thumbsdown:...")},
+		{"teamidxxxx", "channelidxxxx", "`description including space` :emoji1:  :emoji2:   :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
+
+		{"teamidxxxx", "channelidxxxx", "description including space` :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("Start quotation mark missing")},
+		{"teamidxxxx", "channelidxxxx", "`description including space :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("End quotation mark missing")},
+
+		{"teamidxxxx", "channelidxxxx", "`description including space' :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("First and second quotes do not match")},
+		{"teamidxxxx", "channelidxxxx", "'description including space\" :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("First and second quotes do not match")},
+		{"teamidxxxx", "channelidxxxx", "\"description including space` :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("First and second quotes do not match")},
 
 		{"", "channelidxxxx", "`description` :emoji1:", "", []string{}, fmt.Errorf("Unexpected Error: TeamID in request is empty.")},
 		{"teamidxxxx", "", "`description` :emoji1:", "", []string{}, fmt.Errorf("Unexpected Error: ChannelID in request is empty.")},
-		{"teamidxxxx", "channelidxxxx", "`` :emoji1:", "", []string{""}, fmt.Errorf("Command Error: /poll `Here is description` :thumbsup: :thumbsdown:...")},
-		{"teamidxxxx", "channelidxxxx", "`description`", "", []string{""}, fmt.Errorf("Command Error: /poll `Here is description` :thumbsup: :thumbsdown:...")},
+
+		{"teamidxxxx", "channelidxxxx", "`description including space`", "", []string{}, fmt.Errorf("No emoji found")},
+		{"teamidxxxx", "channelidxxxx", "`description including space` emoji1", "", []string{}, fmt.Errorf("Emoji format error")},
+		{"teamidxxxx", "channelidxxxx", "`` :emoji1:", "", []string{""}, fmt.Errorf("No description found")},
 	}
 
 	for _, tt := range tables {
