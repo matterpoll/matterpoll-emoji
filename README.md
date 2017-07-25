@@ -29,7 +29,7 @@ Change parameter in `config.json` e.g.
 ```
 {
   "host": "http://mattermost.example.com:8065", # The URL of your Mattermost server
-  "token": "9jrxak1ykxrmnaed9cps9i4cim3y5b", # The Token created my Mattermost
+  "token": "9jrxak1ykxrmnaed9cps9i4cim", # The Token created my Mattermost
   "user": {
    "id": "bot",          # The username of an existing Mattermost account
    "password": "botbot"  # The password of an existing Mattermost account
