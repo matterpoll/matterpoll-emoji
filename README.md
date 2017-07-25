@@ -4,6 +4,19 @@
 
 Polling feature for Mattermost's custom slash command.
 
+## Setup Mattermost
+
+Create a `Custom Slash Command` from Integration > Slash Commands > Add Slash Command.
+
+* DisplayName - Arbitrary (ex. MatterPoll)
+* Description - Arbitrary (ex. Polling feature by https://github.com/kaakaa/matterpoll-emoji)
+* Command Trigger Word - `poll`
+* Request URL - http://localhost:8505/poll
+* Request Method - `POST`
+* Others - optional
+
+Copy the Token from your newly created slash command
+
 ## Setup server
 
 Clone this repository
@@ -16,6 +29,7 @@ Change parameter in `config.json` e.g.
 ```
 {
   "host": "http://mattermost.example.com:8065", # The URL of your Mattermost server
+  "token": "9jrxak1ykxrmnaed9cps9i4cim3y5b", # The Token created my Mattermost
   "user": {
    "id": "bot",          # The username of an existing Mattermost account
    "password": "botbot"  # The password of an existing Mattermost account
@@ -28,17 +42,6 @@ Setup `matterpoll-emoji` server
 glide install
 go run main.go -p 8505
 ```
-
-## Setup Mattermost
-
-Create a `Custom Slash Command` from Integration > Slash Commands > Add Slash Command.
-
-* DisplayName - Arbitrary (ex. MatterPoll)
-* Description - Arbitrary (ex. Polling feature by https://github.com/kaakaa/matterpoll-emoji)
-* Command Trigger Word - `poll`
-* Request URL - http://localhost:8505/poll
-* Request Method - `POST`
-* Others - optional
 
 ## Usage
 
