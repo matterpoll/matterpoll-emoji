@@ -20,7 +20,7 @@ func TestReadConf(t *testing.T) {
 	if c.Host != e {
 		t.Error("LoadConf Error. Expected: %s, Actual: %s.", e, c.Host)
 	}
-	e = "9jrxak1ykxrmnaed9cps9i4cim3y5b"
+	e = "9jrxak1ykxrmnaed9cps9i4cim"
         if c.Token != e {
 		t.Error("LoadConf Error. Expected: %s, Actual: %s.", e, c.Token)
 	}

@@ -1,6 +1,6 @@
 {
 	"host": "http://mattermost.example.com:8065",
-	"token": "9jrxak1ykxrmnaed9cps9i4cim3y5b",
+	"token": "9jrxak1ykxrmnaed9cps9i4cim",
 	"user": {
 		"id": "bot",
 		"password": "botbot"
