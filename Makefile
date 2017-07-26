@@ -33,6 +33,9 @@ clean:
 test:
 	go test -coverprofile=profile.out -covermode=atomic ./poll/
 
+coverage: test
+	go tool cover -html=profile.out
+
 dist: cross-build
 	cd dist && \
 	$(DIST_DIRS) cp ../LICENSE {} \; && \
