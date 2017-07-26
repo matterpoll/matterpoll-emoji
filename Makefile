@@ -31,7 +31,7 @@ clean:
 	rm -rf dist/*
 
 test:
-	go test -cover -v `glide novendor`
+	go test -coverprofile=profile.out -covermode=atomic ./poll/
 
 dist: cross-build
 	cd dist && \
