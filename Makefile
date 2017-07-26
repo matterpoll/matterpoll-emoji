@@ -31,7 +31,7 @@ clean:
 	rm -rf dist/*
 
 test:
-	sh go.test.sh
+	go test -coverprofile=profile.out -covermode=atomic ./poll/
 
 dist: cross-build
 	cd dist && \
