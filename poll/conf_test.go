@@ -21,7 +21,7 @@ func TestReadConf(t *testing.T) {
 		t.Error("LoadConf Error. Expected: %s, Actual: %s.", e, c.Host)
 	}
 	e = "9jrxak1ykxrmnaed9cps9i4cim"
-        if c.Token != e {
+	if c.Token != e {
 		t.Error("LoadConf Error. Expected: %s, Actual: %s.", e, c.Token)
 	}
 	e = "bot"
@@ -34,14 +34,31 @@ func TestReadConf(t *testing.T) {
 	}
 }
 
-func TestReadConfError(t *testing.T) {
-	p, err := getTestFilePath("sample_conf_error.json")
-	if err != nil {
-		t.Fatalf("Cannot get test file path %v", err)
+func TestValidate(t *testing.T) {
+	tests := []struct {
+		filename      string
+		should_error  bool
+	}{
+		{"sample_conf.json", false},
+		{"sample_conf_error.json", true},
+		{"sample_conf_error_no_host.json", true},
+		{"sample_conf_error_no_token.json", false},
+		{"sample_conf_error_no_user.json", true},
+		{"sample_conf_error_no_user_id.json", true},
+		{"sample_conf_error_no_user_password.json", true},
 	}
-	_, err = LoadConf(p)
-	if err == nil {
-		t.Fatalf("PollConf validation error")
+	for i, test := range tests {
+		p, err := getTestFilePath(test.filename)
+		if err != nil {
+			t.Fatalf("Test %v: Cannot get test file: %v", i, err)
+		}
+		_, err = LoadConf(p)
+		if err != nil && test.should_error == false {
+			t.Fatalf("Test %v retured with error: %v but there sould be none", i, err)
+		}
+		if err == nil && test.should_error == true {
+			t.Fatalf("Test %v didnt not return with an error but it should return with one",  i)
+		}
 	}
 }
 
