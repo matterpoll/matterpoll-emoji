@@ -39,6 +39,9 @@ func (c *PollConf) validate() error {
 //		return fmt.Errorf("Config `token` is missing")
 		fmt.Println("No token is configured. You may set it in the config file")
 	}
+  if len(c.Token) != 26 {
+    return fmt.Errorf("Invalid token length. Check you config.json")
+  }
 	if len(c.User.Id) == 0 {
 		return fmt.Errorf("Config `user.id` is missing")
 	}

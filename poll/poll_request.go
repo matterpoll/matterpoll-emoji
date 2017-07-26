@@ -10,6 +10,7 @@ import (
 type PollRequest struct {
 	TeamId    string
 	ChannelId string
+	Token     string
 	Message   string
 	Emojis    []string
 }
@@ -31,14 +32,14 @@ func NewPollRequest(s string) (*PollRequest, error) {
 			if p.ChannelId = values[0]; len(p.ChannelId) == 0 {
 				return nil, fmt.Errorf("Unexpected Error: ChannelID in request is empty.")
 			}
+		case "token":
+			if p.Token = values[0]; len(p.Token) == 0 {
+				return nil, fmt.Errorf("Unexpected Error: Token in request is empty.")
+			}
 		case "text":
 			p.Message, p.Emojis, err = parseText(values[0])
 			if err != nil {
 				return nil, err
-			}
-		case "token":
-			if Conf.Token != "" && Conf.Token != values[0] {
-				return nil, fmt.Errorf("Token missmatch. Check you config.json")
 			}
 		}
 	}
