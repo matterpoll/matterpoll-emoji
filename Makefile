@@ -31,10 +31,10 @@ clean:
 	rm -rf dist/*
 
 test:
-	go test -coverprofile=profile.out -covermode=atomic ./poll/
+	go test -coverprofile=coverage.txt -covermode=atomic ./poll/
 
 coverage: test
-	go tool cover -html=profile.out
+	go tool cover -html=coverage.txt
 
 dist: cross-build
 	cd dist && \
