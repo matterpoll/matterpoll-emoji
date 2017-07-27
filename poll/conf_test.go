@@ -54,10 +54,10 @@ func TestValidate(t *testing.T) {
 		}
 		_, err = LoadConf(p)
 		if err != nil && test.should_error == false {
-			t.Fatalf("Test %v retured with error: %v but there sould be none", i, err)
+			t.Fatalf("Test %v: Test retured with error %v but there sould be none", i, err)
 		}
 		if err == nil && test.should_error == true {
-			t.Fatalf("Test %v didnt not return with an error but it should return with one",  i)
+			t.Fatalf("Test %v: Test didn't return with an error but it should return with one",  i)
 		}
 	}
 }
