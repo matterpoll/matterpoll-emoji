@@ -1,0 +1,7 @@
+{
+  "host": "http://localhost:8065",
+	"user": {
+		"id": "bot",
+		"password": "botbot"
+	}
+}
