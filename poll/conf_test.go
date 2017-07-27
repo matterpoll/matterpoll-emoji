@@ -36,8 +36,8 @@ func TestReadConf(t *testing.T) {
 
 func TestValidate(t *testing.T) {
 	tests := []struct {
-		filename      string
-		should_error  bool
+		filename     string
+		should_error bool
 	}{
 		{"sample_conf.json", false},
 		{"sample_conf_error.json", true},
@@ -57,7 +57,7 @@ func TestValidate(t *testing.T) {
 			t.Fatalf("Test %v: Test retured with error %v but there sould be none", i, err)
 		}
 		if err == nil && test.should_error == true {
-			t.Fatalf("Test %v: Test didn't return with an error but it should return with one",  i)
+			t.Fatalf("Test %v: Test didn't return with an error but it should return with one", i)
 		}
 	}
 }
