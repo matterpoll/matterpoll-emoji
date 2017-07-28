@@ -1,0 +1,8 @@
+{
+	"host": "http://localhost:8065",
+	"token": "9jrxak1ykxrmnaed9cps9i4c",
+	"user": {
+		"id": "bot",
+		"password": "botbot"
+	}
+}
