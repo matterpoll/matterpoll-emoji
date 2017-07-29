@@ -34,7 +34,7 @@ func TestNewPollRequest(t *testing.T) {
 
 		{"", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description` :emoji1:", "", []string{}, fmt.Errorf("Unexpected Error: TeamID in request is empty.")},
 		{"teamidxxxx", "", "9jrxak1ykxrmnaed9cps9i4cim", "`description` :emoji1:", "", []string{}, fmt.Errorf("Unexpected Error: ChannelID in request is empty.")},
-    {"teamidxxxx", "channelidxxxx", "", "`description` :emoji1:", "", []string{}, fmt.Errorf("Unexpected Error: Token in request is empty.")},
+		{"teamidxxxx", "channelidxxxx", "", "`description` :emoji1:", "", []string{}, fmt.Errorf("Unexpected Error: Token in request is empty.")},
 
 		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space`", "", []string{}, fmt.Errorf("No emoji found")},
 		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space` emoji1", "", []string{}, fmt.Errorf("Emoji format error")},
@@ -42,7 +42,12 @@ func TestNewPollRequest(t *testing.T) {
 	}
 
 	for i, tt := range tables {
-		s := fmt.Sprintf("team_id=%s&channel_id=%s&token=%s&text=%s", tt.teamId, tt.channelId, tt.token, tt.text)
+		s := make(map[string][]string)
+		s["team_id"] = []string{tt.teamId}
+		s["channel_id"] = []string{tt.channelId}
+		s["token"] = []string{tt.token}
+		s["text"] = []string{tt.text}
+
 		p, err := NewPollRequest(s)
 
 		if err != nil && tt.err == nil {
@@ -61,7 +66,7 @@ func TestNewPollRequest(t *testing.T) {
 		if p.ChannelId != tt.channelId {
 			t.Errorf("Test %v: Assertion error `ChannelId`. Expected: %s, Actual: %s.", i, tt.channelId, p.ChannelId)
 		}
-    if p.Token != tt.token {
+		if p.Token != tt.token {
 			t.Errorf("Test %v: Assertion error `Token`. Expected: %s, Actual: %s.", i, tt.token, p.Token)
 		}
 		if p.Message != tt.message {
