@@ -2,7 +2,6 @@ package poll
 
 import (
 	"fmt"
-	"net/url"
 	"regexp"
 	"strings"
 )
@@ -15,14 +14,9 @@ type PollRequest struct {
 	Emojis    []string
 }
 
-func NewPollRequest(s string) (*PollRequest, error) {
-	u, err := url.Parse("http://dummy.com/?" + s)
-	if err != nil {
-		return nil, err
-	}
-
+func NewPollRequest(u map[string][]string) (*PollRequest, error) {
 	p := &PollRequest{}
-	for key, values := range u.Query() {
+	for key, values := range u {
 		switch key {
 		case "team_id":
 			if p.TeamId = values[0]; len(p.TeamId) == 0 {
@@ -37,6 +31,7 @@ func NewPollRequest(s string) (*PollRequest, error) {
 				return nil, fmt.Errorf("Unexpected Error: Token in request is empty.")
 			}
 		case "text":
+			var err error
 			p.Message, p.Emojis, err = parseText(values[0])
 			if err != nil {
 				return nil, err

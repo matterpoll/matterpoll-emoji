@@ -2,7 +2,6 @@ package poll
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -13,12 +12,12 @@ var Conf *PollConf
 
 func PollCmd(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	b, err := ioutil.ReadAll(r.Body)
+	err := r.ParseForm()
 	if err != nil {
 		log.Print(err)
 		return
 	}
-	poll, err := NewPollRequest(string(b))
+	poll, err := NewPollRequest(r.Form)
 	if err != nil {
 		log.Print(err)
 		return
