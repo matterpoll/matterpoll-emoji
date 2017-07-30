@@ -2,7 +2,6 @@ package poll
 
 import (
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	//"time"
@@ -14,24 +13,26 @@ var Conf *PollConf
 
 func PollCmd(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	b, err := ioutil.ReadAll(r.Body)
+	err := r.ParseForm()
 	if err != nil {
 		log.Print("Error", err)
 		return
 	}
-
-	poll, err := NewPollRequest(string(b))
+	poll, err := NewPollRequest(r.Form)
 	if err != nil {
 		log.Print("Error", err)
 		return
 	}
-
 	var responce = `{
 		"response_type": "in_channel",
 		"text": "` + poll.Message + ` #poll",
 		"username": "Poll Bot",
 		"icon_url": "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png"
 	}`
+	if len(Conf.Token) != 0 && Conf.Token != poll.Token {
+		log.Print("Token missmatch. Check you config.json")
+		return
+	}
 
 	c := model.NewClient(Conf.Host)
 	c.TeamId = poll.TeamId

@@ -31,7 +31,10 @@ clean:
 	rm -rf dist/*
 
 test:
-	go test -cover -v `glide novendor`
+	go test -coverprofile=coverage.txt -covermode=atomic ./poll/
+
+coverage: test
+	go tool cover -html=coverage.txt
 
 dist: cross-build
 	cd dist && \

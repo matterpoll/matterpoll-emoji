@@ -2,7 +2,6 @@ package poll
 
 import (
 	"fmt"
-	"net/url"
 	"regexp"
 	"strings"
 )
@@ -10,18 +9,14 @@ import (
 type PollRequest struct {
 	TeamId    string
 	ChannelId string
+	Token     string
 	Message   string
 	Emojis    []string
 }
 
-func NewPollRequest(s string) (*PollRequest, error) {
-	u, err := url.Parse("http://dummy.com/?" + s)
-	if err != nil {
-		return nil, err
-	}
-
+func NewPollRequest(u map[string][]string) (*PollRequest, error) {
 	p := &PollRequest{}
-	for key, values := range u.Query() {
+	for key, values := range u {
 		switch key {
 		case "team_id":
 			if p.TeamId = values[0]; len(p.TeamId) == 0 {
@@ -31,12 +26,16 @@ func NewPollRequest(s string) (*PollRequest, error) {
 			if p.ChannelId = values[0]; len(p.ChannelId) == 0 {
 				return nil, fmt.Errorf("Unexpected Error: ChannelID in request is empty.")
 			}
+		case "token":
+			if p.Token = values[0]; len(p.Token) == 0 {
+				return nil, fmt.Errorf("Unexpected Error: Token in request is empty.")
+			}
 		case "text":
+			var err error
 			p.Message, p.Emojis, err = parseText(values[0])
 			if err != nil {
 				return nil, err
 			}
-		default:
 		}
 	}
 	return p, nil
@@ -67,10 +66,6 @@ func parseText(text string) (string, []string, error) {
 			return "", nil, fmt.Errorf("Emoji Error: %s is not emoji format", v)
 		}
 		emojis = append(emojis, v[1:len(v)-1])
-	}
-	v := strings.Split(text, " ")
-	if len(v) < 2 {
-		return "", nil, fmt.Errorf("Error: /poll description emoji1 emoji2...")
 	}
 	return e[1], emojis, nil
 }

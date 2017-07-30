@@ -1,6 +1,5 @@
 {
-	"host": 9999,
-	"token": 1234,
+  "host": "http://localhost:8065",
 	"user": {
 		"id": "bot",
 		"password": "botbot"
