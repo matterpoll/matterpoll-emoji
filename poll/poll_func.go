@@ -23,10 +23,10 @@ func PollCmd(w http.ResponseWriter, r *http.Request) {
 		log.Print(err)
 		return
 	}
-  if len(Conf.Token) != 0 && Conf.Token != poll.Token {
-    log.Print("Token missmatch. Check you config.json")
-    return
-  }
+	if len(Conf.Token) != 0 && Conf.Token != poll.Token {
+		log.Print("Token missmatch. Check you config.json")
+		return
+	}
 
 	c := model.NewClient(Conf.Host)
 	c.TeamId = poll.TeamId
