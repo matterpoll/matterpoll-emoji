@@ -2,12 +2,11 @@ package poll
 
 import (
 	"fmt"
+	"github.com/mattermost/platform/model"
 	"io"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/mattermost/platform/model"
 )
 
 var Conf *PollConf
