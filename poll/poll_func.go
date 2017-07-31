@@ -1,10 +1,11 @@
 package poll
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
-	//"time"
+	"time"
 
 	"github.com/mattermost/platform/model"
 )
@@ -15,101 +16,84 @@ func PollCmd(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	err := r.ParseForm()
 	if err != nil {
-		log.Print("Error", err)
+		log.Print("Error: ", err)
 		return
 	}
 	poll, err := NewPollRequest(r.Form)
-	if err != nil {
-		log.Print("Error", err)
-		return
+	var response_type string
+	var response_text string
+	if err == nil {
+		response_type = "in_channel"
+		response_text = poll.Message + ` #poll`
+	} else {
+		response_type = "ephemeral"
+		response_text = err.Error()
 	}
-	var responce = `{
-		"response_type": "in_channel",
-		"text": "` + poll.Message + ` #poll",
-		"username": "Poll Bot",
+
+	var response = `{
+		"response_type": "` + response_type + `",
+		"text": "` + response_text + `",
+		"username": "Matterpoll",
 		"icon_url": "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png"
 	}`
-	if len(Conf.Token) != 0 && Conf.Token != poll.Token {
-		log.Print("Token missmatch. Check you config.json")
-		return
-	}
-
-	c := model.NewClient(Conf.Host)
-	c.TeamId = poll.TeamId
-
-	var user *model.User
-	user, err = login(c)
-	var userId = user.Id
-	if err != nil {
-		log.Print("Error", err)
-		return
-	}
-
-	var result *model.Result
-	io.WriteString(w, responce)
-	/*
-		var start = time.Now().Unix()
-
-		time.Sleep(30 * time.Second)
-
-		result, err = c.GetPostsSince(poll.ChannelId, start)
-		if err != nil {
-			log.Println("Error", err)
+	io.WriteString(w, response)
+	if err == nil {
+		if len(Conf.Token) != 0 && Conf.Token != poll.Token {
+			log.Print("Token missmatch. Check you config.json")
 			return
 		}
-	*/
-	result, err = c.GetPosts(poll.ChannelId, 0, 10, "")
-	if err != nil {
-		log.Println("Error", err)
-		return
-	}
 
-	var postId = result.Data.(*model.PostList).Order[0]
-	log.Println(result.Data.(*model.PostList).Order)
-	for _, postId := range result.Data.(*model.PostList).Order {
-		log.Println("Message is:", result.Data.(*model.PostList).Posts[postId].Message)
-	}
-	log.Println("PostId is:", result.Data.(*model.PostList).Posts[postId].Id)
-	log.Println("Message is:", result.Data.(*model.PostList).Posts[postId].Message)
-	log.Println("UserId is:", result.Data.(*model.PostList).Posts[postId].UserId)
-
-	err = reaction(c, poll.ChannelId, userId, postId, poll.Emojis)
-	if err != nil {
-		log.Print("Error", err)
-		return
+		c := model.NewAPIv4Client(Conf.Host)
+		var user *model.User
+		user, err = login(c)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+		go addReaction(c, user, poll)
 	}
 }
 
-func login(c *model.Client) (*model.User, error) {
-	r, err := c.Login(Conf.User.Id, Conf.User.Password)
-	if err != nil {
-		return nil, err
+func login(c *model.Client4) (*model.User, error) {
+	u, api_response := c.Login(Conf.User.Id, Conf.User.Password)
+	if api_response != nil && api_response.StatusCode != 200 {
+		return nil, fmt.Errorf("Error: Login failed. API statuscode: ", api_response.StatusCode)
 	}
-	return r.Data.(*model.User), nil
+	return u, nil
 }
 
-func post(c *model.Client, poll *PollRequest) (*model.Post, error) {
-	p := model.Post{
-		ChannelId: poll.ChannelId,
-		Message:   poll.Message + " #poll",
+func addReaction(c *model.Client4, user *model.User, poll *PollRequest) {
+	for try := 0; try < 5; try++ {
+		// Get the last post and compare it to our message text
+		result, api_response := c.GetPostsForChannel(poll.ChannelId, 0, 1, "")
+		if api_response != nil && api_response.StatusCode != 200 {
+			log.Println("Error: Failed to fetch posts. API statuscode: ", api_response.StatusCode)
+			return
+		}
+		var postId = result.Order[0]
+		if result.Posts[postId].Message == poll.Message+" #poll" {
+			err := reaction(c, poll.ChannelId, user.Id, postId, poll.Emojis)
+			if err != nil {
+				log.Print(err)
+				return
+			}
+			return
+		}
+		// Try again later
+		time.Sleep(100 * time.Millisecond)
 	}
-	r, err := c.CreatePost(&p)
-	if err != nil {
-		return nil, err
-	}
-	return r.Data.(*model.Post), nil
 }
 
-func reaction(c *model.Client, channelId string, userId string, postId string, emojis []string) error {
+func reaction(c *model.Client4, channelId string, userId string, postId string, emojis []string) error {
 	for _, e := range emojis {
 		r := model.Reaction{
 			UserId:    userId,
 			PostId:    postId,
 			EmojiName: e,
 		}
-		_, err := c.SaveReaction(channelId, &r)
-		if err != nil {
-			return err
+		_, api_response := c.SaveReaction(&r)
+		if api_response != nil && api_response.StatusCode != 200 {
+			return fmt.Errorf("Error: Failed to save reaction. API statuscode: ", api_response.StatusCode)
 		}
 	}
 	return nil
