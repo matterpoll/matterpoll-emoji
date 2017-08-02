@@ -56,7 +56,7 @@ func PollCmd(w http.ResponseWriter, r *http.Request) {
 func login(c *model.Client4) (*model.User, error) {
 	u, api_response := c.Login(Conf.User.Id, Conf.User.Password)
 	if api_response != nil && api_response.StatusCode != 200 {
-		return nil, fmt.Errorf("Error: Login failed. API statuscode: ", api_response.StatusCode)
+		return nil, fmt.Errorf("Error: Login failed. API statuscode: %v", api_response.StatusCode)
 	}
 	return u, nil
 }
@@ -66,7 +66,7 @@ func addReaction(c *model.Client4, user *model.User, poll *PollRequest) {
 		// Get the last post and compare it to our message text
 		result, api_response := c.GetPostsForChannel(poll.ChannelId, 0, 1, "")
 		if api_response != nil && api_response.StatusCode != 200 {
-			log.Println("Error: Failed to fetch posts. API statuscode: ", api_response.StatusCode)
+			log.Println("Error: Failed to fetch posts. API statuscode: %v", api_response.StatusCode)
 			return
 		}
 		var postId = result.Order[0]
@@ -92,7 +92,7 @@ func reaction(c *model.Client4, channelId string, userId string, postId string, 
 		}
 		_, api_response := c.SaveReaction(&r)
 		if api_response != nil && api_response.StatusCode != 200 {
-			return fmt.Errorf("Error: Failed to save reaction. API statuscode: ", api_response.StatusCode)
+			return fmt.Errorf("Error: Failed to save reaction. API statuscode: %v", api_response.StatusCode)
 		}
 	}
 	return nil
