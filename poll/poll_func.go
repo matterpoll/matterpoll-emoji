@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+const (
+	RESPONSE_USERNAME = "Matterpoll"
+	RESPONSE_ICON_URL = "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png"
+)
+
 var Conf *PollConf
 
 func PollCmd(w http.ResponseWriter, r *http.Request) {
@@ -19,24 +24,20 @@ func PollCmd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	poll, err := NewPollRequest(r.Form)
-	var response_type string
-	var response_text string
-	if err == nil {
-		response_type = "in_channel"
-		response_text = poll.Message + ` #poll`
-	} else {
-		response_type = "ephemeral"
-		response_text = err.Error()
-	}
+	var valid_poll bool = err == nil
 
-	var response = `{
-		"response_type": "` + response_type + `",
-		"text": "` + response_text + `",
-		"username": "Matterpoll",
-		"icon_url": "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png"
-	}`
-	io.WriteString(w, response)
-	if err == nil {
+	var response model.CommandResponse
+	response.ResponseType = RESPONSE_USERNAME
+	response.IconURL = RESPONSE_ICON_URL
+	if valid_poll {
+		response.ResponseType = model.COMMAND_RESPONSE_TYPE_IN_CHANNEL
+		response.Text = poll.Message + ` #poll`
+	} else {
+		response.ResponseType = model.COMMAND_RESPONSE_TYPE_EPHEMERAL
+		response.Text = err.Error()
+	}
+	io.WriteString(w, response.ToJson())
+	if valid_poll {
 		if len(Conf.Token) != 0 && Conf.Token != poll.Token {
 			log.Print("Token missmatch. Check you config.json")
 			return
