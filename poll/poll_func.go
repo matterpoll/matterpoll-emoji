@@ -27,7 +27,7 @@ func PollCmd(w http.ResponseWriter, r *http.Request) {
 	var valid_poll bool = err == nil
 
 	var response model.CommandResponse
-	response.ResponseType = RESPONSE_USERNAME
+	response.Username = RESPONSE_USERNAME
 	response.IconURL = RESPONSE_ICON_URL
 	if valid_poll {
 		response.ResponseType = model.COMMAND_RESPONSE_TYPE_IN_CHANNEL
