@@ -43,8 +43,8 @@ check-style:
 	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
 		echo "gofmt success"; \
 	else \
-		echo "gofmt failure. You must format the following .go files."; \
-		echo "  $(GOFMT_OUTPUT)"; \
+		echo "gofmt failure. Please run:"; \
+		echo "  gofmt -w -s $(GOFMT_OUTPUT)"; \
 		exit 1; \
 	fi
 
