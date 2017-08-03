@@ -29,7 +29,7 @@ func PollCmd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	poll, err := NewPollRequest(r.Form)
-	var valid_poll bool = err == nil
+	valid_poll := err == nil
 
 	var response model.CommandResponse
 	response.Username = RESPONSE_USERNAME
@@ -49,17 +49,16 @@ func PollCmd(w http.ResponseWriter, r *http.Request) {
 		}
 
 		c := model.NewAPIv4Client(Conf.Host)
-		var user *model.User
-		user, err = login(c)
+		user, err := Login(c)
 		if err != nil {
 			log.Print(err)
 			return
 		}
-		go addReaction(c, user, poll)
+		go AddReaction(c, user, poll)
 	}
 }
 
-func login(c *model.Client4) (*model.User, error) {
+func Login(c *model.Client4) (*model.User, error) {
 	u, api_response := c.Login(Conf.User.Id, Conf.User.Password)
 	if api_response != nil && api_response.StatusCode != 200 {
 		return nil, fmt.Errorf("Error: Login failed. API statuscode: %v", api_response.StatusCode)
@@ -67,7 +66,7 @@ func login(c *model.Client4) (*model.User, error) {
 	return u, nil
 }
 
-func addReaction(c *model.Client4, user *model.User, poll *PollRequest) {
+func AddReaction(c *model.Client4, user *model.User, poll *PollRequest) {
 	for try := 0; try < 5; try++ {
 		// Get the last post and compare it to our message text
 		result, api_response := c.GetPostsForChannel(poll.ChannelId, 0, 1, "")
@@ -75,9 +74,9 @@ func addReaction(c *model.Client4, user *model.User, poll *PollRequest) {
 			log.Println("Error: Failed to fetch posts. API statuscode: %v", api_response.StatusCode)
 			return
 		}
-		var postId = result.Order[0]
+		postId := result.Order[0]
 		if result.Posts[postId].Message == poll.Message+" #poll" {
-			err := reaction(c, poll.ChannelId, user.Id, postId, poll.Emojis)
+			err := Reaction(c, poll.ChannelId, user.Id, postId, poll.Emojis)
 			if err != nil {
 				log.Print(err)
 				return
@@ -89,7 +88,7 @@ func addReaction(c *model.Client4, user *model.User, poll *PollRequest) {
 	}
 }
 
-func reaction(c *model.Client4, channelId string, userId string, postId string, emojis []string) error {
+func Reaction(c *model.Client4, channelId string, userId string, postId string, emojis []string) error {
 	for _, e := range emojis {
 		r := model.Reaction{
 			UserId:    userId,
