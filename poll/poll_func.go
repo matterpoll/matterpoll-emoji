@@ -71,7 +71,7 @@ func AddReaction(c *model.Client4, user *model.User, poll *PollRequest) {
 		// Get the last post and compare it to our message text
 		result, api_response := c.GetPostsForChannel(poll.ChannelId, 0, 1, "")
 		if api_response != nil && api_response.StatusCode != 200 {
-			log.Println("Error: Failed to fetch posts. API statuscode: %v", api_response.StatusCode)
+			log.Printf("Error: Failed to fetch posts. API statuscode: %v", api_response.StatusCode)
 			return
 		}
 		postId := result.Order[0]
