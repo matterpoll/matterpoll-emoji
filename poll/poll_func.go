@@ -18,9 +18,14 @@ var Conf *PollConf
 
 func PollCmd(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+	// Check if Content Type is correct
+	if r.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		return
+	}
 	err := r.ParseForm()
 	if err != nil {
-		log.Print("Error: ", err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	poll, err := NewPollRequest(r.Form)
