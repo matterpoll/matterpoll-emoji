@@ -5,7 +5,7 @@ REVISION := $(shell git rev-parse --short HEAD)
 LDFLAGS := -ldflags="-s -w -X \"main.Version=$(VERSION)\" -X \"main.Revision=$(REVISION)\" -extldflags \"-static\""
 DIST_DIRS := find * -type d -exec
 
-.PHONY: glide deps clean test cross-build dist
+.PHONY: glide deps clean check-style test coverage cross-build dist
 
 all: dist test
 
@@ -35,6 +35,18 @@ test:
 
 coverage: test
 	go tool cover -html=coverage.txt
+
+check-style:
+	@echo Running gofmt
+	$(eval GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path './vendor/*'))
+	$(eval GOFMT_OUTPUT := $(shell gofmt -l -s $(GOFILES_NOVENDOR) 2>&1))
+	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
+		echo "gofmt success"; \
+	else \
+		echo "gofmt failure. Please run:"; \
+		echo "  gofmt -w -s $(GOFMT_OUTPUT)"; \
+		exit 1; \
+	fi
 
 dist: cross-build
 	cd dist && \
