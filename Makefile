@@ -37,13 +37,14 @@ coverage: test
 	go tool cover -html=coverage.txt
 
 check-style:
-	@echo Running GOFMT
-	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s poll/ 2>&1))
-	@echo "$(GOFMT_OUTPUT)"
+	@echo Running gofmt
+	$(eval GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path './vendor/*'))
+	$(eval GOFMT_OUTPUT := $(shell gofmt -l -s $(GOFILES_NOVENDOR) 2>&1))
 	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
 		echo "gofmt success"; \
 	else \
-		echo "gofmt failure"; \
+		echo "gofmt failure. You must format the following .go files."; \
+		echo "  $(GOFMT_OUTPUT)"; \
 		exit 1; \
 	fi
 
