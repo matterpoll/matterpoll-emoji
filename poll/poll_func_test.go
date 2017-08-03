@@ -90,21 +90,15 @@ func TestHeader(t *testing.T) {
 		}
 		payload := fmt.Sprintf("token=%s&user_id=%s&text=\"%s\"%s", Conf.Token, model.NewId(), test.Message, test.Emojis)
 		reader := strings.NewReader(payload)
-
-		r, _ := http.NewRequest("POST", "localhost:8505/poll", reader)
-		recorder := httptest.NewRecorder()
-		PollCmd(recorder, r)
 		switch i {
 		case 0:
+			r, _ := http.NewRequest("POST", "localhost:8505/poll", reader)
+			recorder := httptest.NewRecorder()
+			PollCmd(recorder, r)
 			if recorder.Code != http.StatusUnsupportedMediaType {
 				t.Errorf("Test %v: Assertion error. Expected: %v, Actual: %v.", i, http.StatusNotAcceptable, recorder.Code)
 			}
-		case 1:
-			if recorder.Code != http.StatusBadRequest {
-				t.Errorf("Test %v: Assertion error. Expected: %v, Actual: %v.", i, http.StatusBadRequest, recorder.Code)
-			}
 		}
-
 	}
 }
 
