@@ -5,7 +5,13 @@
 
 Polling feature for Mattermost's custom slash command.
 
-## Setup Mattermost
+## Requirements
+- [go](https://golang.org/)
+    - Verion 1.7 or 1.8
+- [Mattermost server](https://about.mattermost.com/)
+    - Version 3.0 or newer
+
+### Setup Mattermost
 
 Create a `Custom Slash Command` from Integration > Slash Commands > Add Slash Command.
 
@@ -18,7 +24,7 @@ Create a `Custom Slash Command` from Integration > Slash Commands > Add Slash Co
 
 Copy the Token from your newly created slash command
 
-## Setup server
+### Setup server
 
 Clone this repository
 ```
