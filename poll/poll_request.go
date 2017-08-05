@@ -14,6 +14,11 @@ type PollRequest struct {
 	Emojis    []string
 }
 
+const (
+	back_tick          = "`"
+	error_wrong_format = `Wrong message format. Try this instead: ` + back_tick + `/poll \"What do you gys wanna grab for lunch?\" :pizza: :sushi:` + back_tick
+)
+
 func NewPollRequest(u map[string][]string) (*PollRequest, error) {
 	p := &PollRequest{}
 	for key, values := range u {
@@ -51,11 +56,11 @@ func parseText(text string) (string, []string, error) {
 	case '"':
 		re = regexp.MustCompile("\"([^\"]+)\"(.+)")
 	default:
-		return "", nil, fmt.Errorf("Command Error: /poll `Here is description` :thumbsup: :thumbsdown:...")
+		return "", nil, fmt.Errorf(error_wrong_format)
 	}
 	e := re.FindStringSubmatch(text)
 	if len(e) != 3 {
-		return "", nil, fmt.Errorf("Command Error: /poll `Here is description` :thumbsup: :thumbsdown:...")
+		return "", nil, fmt.Errorf(error_wrong_format)
 	}
 	var emojis []string
 	for _, v := range strings.Split(e[2], " ") {
@@ -63,7 +68,7 @@ func parseText(text string) (string, []string, error) {
 			continue
 		}
 		if len(v) < 3 || !strings.HasPrefix(v, ":") || !strings.HasSuffix(v, ":") {
-			return "", nil, fmt.Errorf("Emoji Error: %s is not emoji format", v)
+			return "", nil, fmt.Errorf(error_wrong_format, v)
 		}
 		emojis = append(emojis, v[1:len(v)-1])
 	}
