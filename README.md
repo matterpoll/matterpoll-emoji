@@ -7,9 +7,9 @@ Polling feature for Mattermost's custom slash command.
 
 ## Requirements
 - [go](https://golang.org/)
-    - Verion 1.7 or 1.8
+    - Verion 1.7 or newer
 - [Mattermost server](https://about.mattermost.com/)
-    - Version 3.0 or newer
+    - Version 3.7 or newer
 
 ### Setup Mattermost
 
