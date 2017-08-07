@@ -7,7 +7,7 @@ DIST_DIRS := find * -type d -exec
 
 .PHONY: glide deps clean check-style test coverage cross-build dist
 
-all: dist test
+all: deps test dist
 
 glide:
 ifeq ($(shell command -v glide 2> /dev/null),)
@@ -17,7 +17,7 @@ endif
 deps: glide
 	glide install
 
-cross-build: deps
+cross-build:
 	for os in darwin linux windows; do \
 		GOOS=$$os GOARCH=386 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-i686/$(NAME); \
 	done 
@@ -31,9 +31,10 @@ clean:
 	rm -rf dist/*
 
 test:
-	go test -coverprofile=coverage.txt -covermode=atomic ./poll/
+	go test -v ./poll/
 
-coverage: test
+coverage:
+	go test -coverprofile=coverage.txt -covermode=atomic ./poll/
 	go tool cover -html=coverage.txt
 
 check-style:
