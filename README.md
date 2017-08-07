@@ -11,6 +11,8 @@ Polling feature for Mattermost's custom slash command.
 - [Mattermost server](https://about.mattermost.com/)
     - Version 3.7 or newer
 
+## Setup Guide
+
 ### Setup Mattermost
 
 Create a `Custom Slash Command` from Integration > Slash Commands > Add Slash Command.
