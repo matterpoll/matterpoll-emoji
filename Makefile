@@ -31,9 +31,10 @@ clean:
 	rm -rf dist/*
 
 test:
-	go test -coverprofile=coverage.txt -covermode=atomic ./poll/
+	go test -v ./poll/
 
-coverage: test
+coverage:
+	go test -coverprofile=coverage.txt -covermode=atomic ./poll/
 	go tool cover -html=coverage.txt
 
 check-style:
