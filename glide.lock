@@ -1,5 +1,5 @@
-hash: cbd76a88164a2ac7e9804860b3ba9cb7519236760a1f6b8b6f5cbdb7f124804d
-updated: 2017-07-25T08:46:29.883623488+02:00
+hash: 033cb89e84decd171d5b7908bedb8105f645275778a090b38523f332e983fe38
+updated: 2017-08-03T21:24:29.440100155+02:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
@@ -7,7 +7,7 @@ imports:
 - name: github.com/gorilla/websocket
   version: 3ab3a8b8831546bd18fd182c20687ca853b2bb13
 - name: github.com/mattermost/platform
-  version: a350f4dc0754e1aeabb64bd712ce05f7c59cfa60
+  version: f71cc067faf935b95ba6fd9e4b24ce5496ab62b9
   subpackages:
   - model
 - name: github.com/nicksnyder/go-i18n
@@ -21,6 +21,11 @@ imports:
   version: a97ce2ca70fa5a848076093f05e639a89ca34d06
 - name: github.com/pelletier/go-toml
   version: 69d355db5304c0f7f809a2edc054553e7142f016
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert
+  - require
 - name: golang.org/x/crypto
   version: 728b753d0135da6801d45a38e6f43ff55779c5c2
   subpackages:

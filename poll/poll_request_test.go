@@ -1,84 +1,69 @@
 package poll
 
 import (
-	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestNewPollRequest(t *testing.T) {
-	tables := []struct {
-		teamId    string
-		channelId string
-		token     string
-		text      string
-		message   string
-		emojis    []string
-		err       error
+	assert := assert.New(t)
+	require := require.New(t)
+	tests := []struct {
+		TeamId      string
+		ChannelId   string
+		Token       string
+		Text        string
+		Message     string
+		Emojis      []string
+		ShouldError bool
 	}{
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description` :emoji1:", "description", []string{"emoji1"}, nil},
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "'description' :emoji1:", "description", []string{"emoji1"}, nil},
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "\"description\" :emoji1:", "description", []string{"emoji1"}, nil},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description` :emoji1:", "description", []string{"emoji1"}, false},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "'description' :emoji1:", "description", []string{"emoji1"}, false},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "\"description\" :emoji1:", "description", []string{"emoji1"}, false},
 
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space` :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "'description including space' :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "\"description including space\" :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space` :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, false},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "'description including space' :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, false},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "\"description including space\" :emoji1: :emoji2: :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, false},
 
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space` :emoji1:  :emoji2:   :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, nil},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space` :emoji1:  :emoji2:   :emoji3:", "description including space", []string{"emoji1", "emoji2", "emoji3"}, false},
 
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "description including space` :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("Start quotation mark missing")},
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("End quotation mark missing")},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "description including space` :emoji1: :emoji2: :emoji3:", "", []string{""}, true},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space :emoji1: :emoji2: :emoji3:", "", []string{""}, true},
 
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space' :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("First and second quotes do not match")},
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "'description including space\" :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("First and second quotes do not match")},
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "\"description including space` :emoji1: :emoji2: :emoji3:", "", []string{""}, fmt.Errorf("First and second quotes do not match")},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space' :emoji1: :emoji2: :emoji3:", "", []string{""}, true},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "'description including space\" :emoji1: :emoji2: :emoji3:", "", []string{""}, true},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "\"description including space` :emoji1: :emoji2: :emoji3:", "", []string{""}, true},
 
-		{"", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description` :emoji1:", "", []string{}, fmt.Errorf("Unexpected Error: TeamID in request is empty.")},
-		{"teamidxxxx", "", "9jrxak1ykxrmnaed9cps9i4cim", "`description` :emoji1:", "", []string{}, fmt.Errorf("Unexpected Error: ChannelID in request is empty.")},
-		{"teamidxxxx", "channelidxxxx", "", "`description` :emoji1:", "", []string{}, fmt.Errorf("Unexpected Error: Token in request is empty.")},
+		{"", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description` :emoji1:", "", []string{}, true},
+		{"teamidxxxx", "", "9jrxak1ykxrmnaed9cps9i4cim", "`description` :emoji1:", "", []string{}, true},
+		{"teamidxxxx", "channelidxxxx", "", "`description` :emoji1:", "", []string{}, true},
 
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space`", "", []string{}, fmt.Errorf("No emoji found")},
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space` emoji1", "", []string{}, fmt.Errorf("Emoji format error")},
-		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`` :emoji1:", "", []string{""}, fmt.Errorf("No description found")},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space`", "", []string{}, true},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`description including space` emoji1", "", []string{}, true},
+		{"teamidxxxx", "channelidxxxx", "9jrxak1ykxrmnaed9cps9i4cim", "`` :emoji1:", "", []string{""}, true},
 	}
 
-	for i, tt := range tables {
+	for _, test := range tests {
 		s := make(map[string][]string)
-		s["team_id"] = []string{tt.teamId}
-		s["channel_id"] = []string{tt.channelId}
-		s["token"] = []string{tt.token}
-		s["text"] = []string{tt.text}
+		s["team_id"] = []string{test.TeamId}
+		s["channel_id"] = []string{test.ChannelId}
+		s["token"] = []string{test.Token}
+		s["text"] = []string{test.Text}
 
 		p, err := NewPollRequest(s)
+		if test.ShouldError == true {
+			assert.NotNil(err)
+			assert.Nil(p)
+		} else {
+			assert.Nil(err)
+			require.NotNil(p)
 
-		if err != nil && tt.err == nil {
-			t.Fatalf("Test %v retured with error : %v but there sould be none", i, err)
-		}
-		if err == nil && tt.err != nil {
-			t.Fatalf("Test %v didnt not return with an error but it should return with %v", i, tt.err)
-		}
-		if err != nil && tt.err != nil {
-			continue
-		}
-
-		if p.TeamId != tt.teamId {
-			t.Errorf("Test %v: Assertion error `TeamId` in Expected: %s, Actual: %s.", i, tt.teamId, p.TeamId)
-		}
-		if p.ChannelId != tt.channelId {
-			t.Errorf("Test %v: Assertion error `ChannelId`. Expected: %s, Actual: %s.", i, tt.channelId, p.ChannelId)
-		}
-		if p.Token != tt.token {
-			t.Errorf("Test %v: Assertion error `Token`. Expected: %s, Actual: %s.", i, tt.token, p.Token)
-		}
-		if p.Message != tt.message {
-			t.Errorf("Test %v: Assertion error `Message`. Expected: %s, Actual: %s.", i, tt.message, p.Message)
-		}
-		if len(p.Emojis) != len(tt.emojis) {
-			t.Errorf("Test %v: Assertion error `Emojis`. Expected: %s, Actual: %s.", i, tt.emojis, p.Emojis)
-		}
-		for i, v := range p.Emojis {
-			if v != tt.emojis[i] {
-				t.Errorf("Test %v: Assertion error `Emojis`. Expected: %s, Actual: %s.", i, tt.emojis, p.Emojis)
-			}
+			assert.Equal(p.TeamId, test.TeamId)
+			assert.Equal(p.ChannelId, test.ChannelId)
+			assert.Equal(p.Token, test.Token)
+			assert.Equal(p.Message, test.Message)
+			assert.Equal(p.Emojis, test.Emojis)
 		}
 	}
 }

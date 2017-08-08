@@ -3,7 +3,8 @@ package poll
 import (
 	"fmt"
 	"github.com/mattermost/platform/model"
-	"log"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -18,7 +19,9 @@ type Test struct {
 }
 
 func TestCommand(t *testing.T) {
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	assert := assert.New(t)
+	require := require.New(t)
+
 	tests := []Test{
 		// All correct
 		{"sample_conf.json", "What do you gys wanna grab for lunch?", ":pizza: :sushi:", true},
@@ -28,10 +31,8 @@ func TestCommand(t *testing.T) {
 		{"sample_conf.json", "What do you gys wanna grab for lunch?", ":pizza: :sushi:", true},
 	}
 	for i, test := range tests {
-		err := SetConfig(test.Filename)
-		if err != nil {
-			t.Fatalf("Test %v: Failed to read config file: %v", i, err)
-		}
+		err := setConfig(test.Filename)
+		require.Nil(err)
 		var payload string
 		switch i {
 		// All correct
@@ -46,82 +47,74 @@ func TestCommand(t *testing.T) {
 		}
 		reader := strings.NewReader(payload)
 
-		r, _ := http.NewRequest(http.MethodPost, "localhost:8505/poll", reader)
+		r, err := http.NewRequest(http.MethodPost, "localhost:8505/poll", reader)
+		require.Nil(err)
+		require.NotNil(r)
 		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
 		recorder := httptest.NewRecorder()
 		PollCmd(recorder, r)
 
 		response := model.CommandResponseFromJson(recorder.Result().Body)
-
-		if response.Username != RESPONSE_USERNAME {
-			t.Errorf("Test %v: Assertion error. Expected: %s, Actual: %s.", i, RESPONSE_USERNAME, response.Username)
-		}
-		if response.IconURL != RESPONSE_ICON_URL {
-			t.Errorf("Test %v: Assertion error. Expected: %s, Actual: %s.", i, RESPONSE_ICON_URL, response.IconURL)
-		}
+		require.NotNil(response)
+		assert.Equal(response.Username, RESPONSE_USERNAME)
+		assert.Equal(response.IconURL, RESPONSE_ICON_URL)
 		if test.CorrectPoll {
-			if response.ResponseType != model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
-				t.Errorf("Test %v: Assertion error. Expected: %s, Actual: %s.", i, model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, response.Text)
-			}
-			if response.Text != test.Message+" #poll" {
-				t.Errorf("Test %v: Assertion error. Expected: %s, Actual: %s.", i, test.Message, response.Text)
-			}
+			assert.Equal(response.ResponseType, model.COMMAND_RESPONSE_TYPE_IN_CHANNEL)
+			assert.Equal(response.Text, test.Message+" #poll")
 		} else {
-			if response.ResponseType != model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
-				t.Errorf("Test %v: Assertion error. Expected: %s, Actual: %s.", i, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, response.ResponseType)
-			}
-			if response.Text != error_wrong_format {
-				t.Errorf("Test %v: Assertion error. Expected: %s, Actual: %s.", i, error_wrong_format, response.Text)
-			}
+			assert.Equal(response.ResponseType, model.COMMAND_RESPONSE_TYPE_EPHEMERAL)
+			assert.Equal(response.Text, error_wrong_format)
 		}
 	}
 }
 
 func TestHeader(t *testing.T) {
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	assert := assert.New(t)
+	require := require.New(t)
+
 	tests := []Test{
 		// All correct
 		{"sample_conf.json", "What do you gys wanna grab for lunch?", ":pizza: :sushi:", true},
 	}
 	for i, test := range tests {
-		err := SetConfig(test.Filename)
-		if err != nil {
-			t.Fatalf("Test %v: Failed to read config file: %v", i, err)
-		}
+		err := setConfig(test.Filename)
+		require.Nil(err)
 		payload := fmt.Sprintf("token=%s&user_id=%s&text=\"%s\"%s", Conf.Token, model.NewId(), test.Message, test.Emojis)
 		reader := strings.NewReader(payload)
 		switch i {
 		case 0:
-			r, _ := http.NewRequest("POST", "localhost:8505/poll", reader)
+			r, err := http.NewRequest("POST", "localhost:8505/poll", reader)
+			require.Nil(err)
+			require.NotNil(r)
+
 			recorder := httptest.NewRecorder()
 			PollCmd(recorder, r)
-			if recorder.Code != http.StatusUnsupportedMediaType {
-				t.Errorf("Test %v: Assertion error. Expected: %v, Actual: %v.", i, http.StatusNotAcceptable, recorder.Code)
-			}
+			assert.Equal(recorder.Code, http.StatusUnsupportedMediaType)
 		}
 	}
 }
 
 func TestURLFormat(t *testing.T) {
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-	i := 0
-	err := SetConfig("sample_conf.json")
-	if err != nil {
-		t.Fatalf("Test %v: Failed to read config file: %v", i, err)
-	}
-	payload := fmt.Sprintf("%")
+	assert := assert.New(t)
+	require := require.New(t)
+
+	err := setConfig("sample_conf.json")
+	require.Nil(err)
+	payload := "%"
 	reader := strings.NewReader(payload)
 
-	r, _ := http.NewRequest("POST", "localhost:8505/poll", reader)
+	r, err := http.NewRequest("POST", "localhost:8505/poll", reader)
+	require.Nil(err)
+	require.NotNil(r)
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
 	recorder := httptest.NewRecorder()
 	PollCmd(recorder, r)
-	if recorder.Code != http.StatusBadRequest {
-		t.Errorf("Test %v: Assertion error. Expected: %v, Actual: %v.", i, http.StatusBadRequest, recorder.Code)
-	}
+	assert.Equal(recorder.Code, http.StatusBadRequest)
 }
 
-func SetConfig(path string) (err error) {
+func setConfig(path string) (err error) {
 	p, err := getTestFilePath(path)
 	if err != nil {
 		return
@@ -131,5 +124,5 @@ func SetConfig(path string) (err error) {
 		return
 	}
 	Conf = c
-	return
+	return nil
 }
