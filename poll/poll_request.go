@@ -67,7 +67,7 @@ func parseText(text string) (string, []string, error) {
 			continue
 		}
 		if len(v) < 3 || !strings.HasPrefix(v, ":") || !strings.HasSuffix(v, ":") {
-			return "", nil, fmt.Errorf(ErrorTextWrongFormat, v)
+			return "", nil, fmt.Errorf(ErrorTextWrongFormat)
 		}
 		emojis = append(emojis, v[1:len(v)-1])
 	}
