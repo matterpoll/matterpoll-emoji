@@ -14,9 +14,11 @@ const (
 	RESPONSE_ICON_URL = "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png"
 )
 
-var Conf *PollConf
+type PollServer struct {
+	Conf *PollConf
+}
 
-func PollCmd(w http.ResponseWriter, r *http.Request) {
+func (ps PollServer) PollCmd(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	// Check if Content Type is correct
 	if r.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
@@ -43,30 +45,30 @@ func PollCmd(w http.ResponseWriter, r *http.Request) {
 	}
 	io.WriteString(w, response.ToJson())
 	if valid_poll {
-		if len(Conf.Token) != 0 && Conf.Token != poll.Token {
+		if len(ps.Conf.Token) != 0 && ps.Conf.Token != poll.Token {
 			log.Print("Token missmatch. Check you config.json")
 			return
 		}
 
-		c := model.NewAPIv4Client(Conf.Host)
-		user, err := Login(c)
+		c := model.NewAPIv4Client(ps.Conf.Host)
+		user, err := ps.login(c)
 		if err != nil {
 			log.Print(err)
 			return
 		}
-		go AddReaction(c, user, poll)
+		go ps.addReaction(c, user, poll)
 	}
 }
 
-func Login(c *model.Client4) (*model.User, error) {
-	u, api_response := c.Login(Conf.User.Id, Conf.User.Password)
+func (ps PollServer) login(c *model.Client4) (*model.User, error) {
+	u, api_response := c.Login(ps.Conf.User.Id, ps.Conf.User.Password)
 	if api_response != nil && api_response.StatusCode != 200 {
 		return nil, fmt.Errorf("Error: Login failed. API statuscode: %v", api_response.StatusCode)
 	}
 	return u, nil
 }
 
-func AddReaction(c *model.Client4, user *model.User, poll *PollRequest) {
+func (ps PollServer) addReaction(c *model.Client4, user *model.User, poll *PollRequest) {
 	for try := 0; try < 5; try++ {
 		// Get the last post and compare it to our message text
 		result, api_response := c.GetPostsForChannel(poll.ChannelId, 0, 1, "")

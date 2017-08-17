@@ -31,16 +31,17 @@ func TestCommand(t *testing.T) {
 		{"sample_conf.json", "What do you gys wanna grab for lunch?", ":pizza: :sushi:", true},
 	}
 	for i, test := range tests {
-		err := setConfig(test.Filename)
+		c, err := getConfig(test.Filename)
 		require.Nil(err)
+		ps := PollServer{c}
 		var payload string
 		switch i {
 		// All correct
 		case 0:
-			payload = fmt.Sprintf("token=%s&user_id=%s&text=\"%s\"%s", Conf.Token, model.NewId(), test.Message, test.Emojis)
+			payload = fmt.Sprintf("token=%s&user_id=%s&text=\"%s\"%s", c.Token, model.NewId(), test.Message, test.Emojis)
 		// Wrong message format
 		case 1:
-			payload = fmt.Sprintf("token=%s&user_id=%s&text=%s", Conf.Token, model.NewId(), test.Message)
+			payload = fmt.Sprintf("token=%s&user_id=%s&text=%s", c.Token, model.NewId(), test.Message)
 		// Token missmatch
 		case 2:
 			payload = fmt.Sprintf("token=%s&user_id=%s&text=\"%s\"%s", model.NewId(), model.NewId(), test.Message, test.Emojis)
@@ -53,7 +54,7 @@ func TestCommand(t *testing.T) {
 		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 		recorder := httptest.NewRecorder()
-		PollCmd(recorder, r)
+		ps.PollCmd(recorder, r)
 
 		response := model.CommandResponseFromJson(recorder.Result().Body)
 		require.NotNil(response)
@@ -78,9 +79,10 @@ func TestHeader(t *testing.T) {
 		{"sample_conf.json", "What do you gys wanna grab for lunch?", ":pizza: :sushi:", true},
 	}
 	for i, test := range tests {
-		err := setConfig(test.Filename)
+		c, err := getConfig(test.Filename)
 		require.Nil(err)
-		payload := fmt.Sprintf("token=%s&user_id=%s&text=\"%s\"%s", Conf.Token, model.NewId(), test.Message, test.Emojis)
+		ps := PollServer{c}
+		payload := fmt.Sprintf("token=%s&user_id=%s&text=\"%s\"%s", c.Token, model.NewId(), test.Message, test.Emojis)
 		reader := strings.NewReader(payload)
 		switch i {
 		case 0:
@@ -89,7 +91,7 @@ func TestHeader(t *testing.T) {
 			require.NotNil(r)
 
 			recorder := httptest.NewRecorder()
-			PollCmd(recorder, r)
+			ps.PollCmd(recorder, r)
 			assert.Equal(recorder.Code, http.StatusUnsupportedMediaType)
 		}
 	}
@@ -99,8 +101,10 @@ func TestURLFormat(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
-	err := setConfig("sample_conf.json")
+	c, err := getConfig("sample_conf.json")
 	require.Nil(err)
+	ps := PollServer{c}
+
 	payload := "%"
 	reader := strings.NewReader(payload)
 
@@ -110,19 +114,18 @@ func TestURLFormat(t *testing.T) {
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	recorder := httptest.NewRecorder()
-	PollCmd(recorder, r)
+	ps.PollCmd(recorder, r)
 	assert.Equal(recorder.Code, http.StatusBadRequest)
 }
 
-func setConfig(path string) (err error) {
+func getConfig(path string) (*PollConf, error) {
 	p, err := getTestFilePath(path)
 	if err != nil {
-		return
+		return nil, err
 	}
-	c, err := LoadConf(p)
+	conf, err := LoadConf(p)
 	if err != nil {
-		return
+		return nil, err
 	}
-	Conf = c
-	return nil
+	return conf, nil
 }
