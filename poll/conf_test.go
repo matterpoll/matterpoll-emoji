@@ -1,6 +1,7 @@
-package poll
+package poll_test
 
 import (
+	"github.com/kaakaa/matterpoll-emoji/poll"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"
@@ -15,13 +16,13 @@ func TestReadConf(t *testing.T) {
 	assert.Nil(err)
 	require.NotNil(p)
 
-	c, err := LoadConf(p)
+	c, err := poll.LoadConf(p)
 	assert.Nil(err)
 	require.NotNil(c)
 
 	assert.Equal(c.Host, "http://localhost:8065")
 	assert.Equal(c.Token, "9jrxak1ykxrmnaed9cps9i4cim")
-	assert.Equal(c.User.Id, "bot")
+	assert.Equal(c.User.ID, "bot")
 	assert.Equal(c.User.Password, "botbot")
 }
 
@@ -46,7 +47,7 @@ func TestValidate(t *testing.T) {
 		assert.Nil(err)
 		require.NotNil(p)
 
-		c, err := LoadConf(p)
+		c, err := poll.LoadConf(p)
 		if test.ShouldError == true {
 			assert.NotNil(err)
 			assert.Nil(c)
@@ -64,7 +65,7 @@ func TestReadConfNotExistsError(t *testing.T) {
 	assert.Nil(err)
 	require.NotNil(p)
 
-	c, err := LoadConf(p)
+	c, err := poll.LoadConf(p)
 	assert.NotNil(err)
 	assert.Nil(c)
 }

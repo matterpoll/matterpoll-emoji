@@ -6,8 +6,9 @@ import (
 	"strings"
 )
 
-type PollRequest struct {
-	ChannelId string
+// Request wraps up all information needed to answer a poll request
+type Request struct {
+	ChannelID string
 	Token     string
 	Message   string
 	Emojis    []string
@@ -20,15 +21,16 @@ const (
 	ErrorWrongLength     = `An error occurred. Try the same command again. If it fails again, contact your administrator.`
 )
 
-func NewPollRequest(u map[string][]string) (*PollRequest, error) {
-	p := &PollRequest{}
+// NewRequest validates the data in map and wraps it into a Request struct
+func NewRequest(u map[string][]string) (*Request, error) {
+	p := &Request{}
 	for key, values := range u {
 		switch key {
 		case "channel_id":
 			if err := checkIdLength(values[0]); err != nil {
 				return nil, err
 			}
-			p.ChannelId = values[0]
+			p.ChannelID = values[0]
 		case "token":
 			if err := checkIdLength(values[0]); err != nil {
 				return nil, err

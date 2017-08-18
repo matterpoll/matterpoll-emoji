@@ -20,7 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 	ps := poll.PollServer{c}
-	http.HandleFunc("/poll", ps.PollCmd)
+	http.HandleFunc("/poll", ps.Cmd)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil); err != nil {
 		log.Fatal(err)
 	}

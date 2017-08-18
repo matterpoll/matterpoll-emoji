@@ -6,23 +6,26 @@ import (
 	"io/ioutil"
 )
 
-type PollConf struct {
+// Conf represents the login credentials of a mattermost user
+type Conf struct {
 	Host  string
 	Token string
-	User  PollUser
+	User  User
 }
 
-type PollUser struct {
-	Id       string
+// User represents the login credentials of a mattermost user
+type User struct {
+	ID       string
 	Password string
 }
 
-func LoadConf(path string) (*PollConf, error) {
+// LoadConf loads a configuration file located at path and parse it to a Conf struct
+func LoadConf(path string) (*Conf, error) {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	var p PollConf
+	var p Conf
 	json.Unmarshal(b, &p)
 	if err := p.validate(); err != nil {
 		return nil, err
@@ -30,7 +33,7 @@ func LoadConf(path string) (*PollConf, error) {
 	return &p, nil
 }
 
-func (c *PollConf) validate() error {
+func (c *Conf) validate() error {
 	if len(c.Host) == 0 {
 		return fmt.Errorf("Config `host` is missing")
 	}
@@ -42,7 +45,7 @@ func (c *PollConf) validate() error {
 	if len(c.Token) > 0 && len(c.Token) != 26 {
 		return fmt.Errorf("Invalid token length. Check you config.json")
 	}
-	if len(c.User.Id) == 0 {
+	if len(c.User.ID) == 0 {
 		return fmt.Errorf("Config `user.id` is missing")
 	}
 	if len(c.User.Password) == 0 {

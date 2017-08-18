@@ -10,15 +10,18 @@ import (
 )
 
 const (
+	// ResponseUsername is the username which will be used to post the slack command response
 	ResponseUsername = "Matterpoll"
+	// ResponseIconUrl is the profile picture which will be used to post the slack command response
 	ResponseIconUrl  = "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png"
 )
 
 type PollServer struct {
-	Conf *PollConf
+	Conf *Conf
 }
 
-func (ps PollServer) PollCmd(w http.ResponseWriter, r *http.Request) {
+// Cmd handles a slash command request and sends back a response
+func (ps PollServer) Cmd(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	// Check if Content Type is correct
 	if r.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
@@ -30,18 +33,18 @@ func (ps PollServer) PollCmd(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	poll, err := NewPollRequest(r.Form)
-	valid_poll := err == nil
+	poll, err := NewRequest(r.Form)
+	validPoll := err == nil
 
 	var response model.CommandResponse
 	response.Username = ResponseUsername
 	response.IconURL = ResponseIconUrl
 
-	if valid_poll && len(ps.Conf.Token) != 0 && ps.Conf.Token != poll.Token {
-		valid_poll = false
+	if validPoll && len(ps.Conf.Token) != 0 && ps.Conf.Token != poll.Token {
+		validPoll = false
 		err = fmt.Errorf(ErrorTokenMissmatch)
 	}
-	if valid_poll {
+	if validPoll {
 		response.ResponseType = model.COMMAND_RESPONSE_TYPE_IN_CHANNEL
 		response.Text = poll.Message + ` #poll`
 	} else {
@@ -49,9 +52,10 @@ func (ps PollServer) PollCmd(w http.ResponseWriter, r *http.Request) {
 		response.Text = err.Error()
 	}
 	io.WriteString(w, response.ToJson())
-	if valid_poll {
+	if validPoll {
 		c := model.NewAPIv4Client(ps.Conf.Host)
 		user, err := ps.login(c)
+
 		if err != nil {
 			log.Print(err)
 			return
@@ -61,24 +65,24 @@ func (ps PollServer) PollCmd(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ps PollServer) login(c *model.Client4) (*model.User, error) {
-	u, api_response := c.Login(ps.Conf.User.Id, ps.Conf.User.Password)
-	if api_response != nil && api_response.StatusCode != 200 {
-		return nil, fmt.Errorf("Error: Login failed. API statuscode: %v", api_response.StatusCode)
+	u, apiResponse := c.Login(ps.Conf.User.ID, ps.Conf.User.Password)
+	if apiResponse != nil && apiResponse.StatusCode != 200 {
+		return nil, fmt.Errorf("Error: Login failed. API statuscode: %v", apiResponse.StatusCode)
 	}
 	return u, nil
 }
 
-func (ps PollServer) addReaction(c *model.Client4, user *model.User, poll *PollRequest) {
+func (ps PollServer) addReaction(c *model.Client4, user *model.User, poll *Request) {
 	for try := 0; try < 5; try++ {
 		// Get the last post and compare it to our message text
-		result, api_response := c.GetPostsForChannel(poll.ChannelId, 0, 1, "")
-		if api_response != nil && api_response.StatusCode != 200 {
-			log.Printf("Error: Failed to fetch posts. API statuscode: %v", api_response.StatusCode)
+		result, apiResponse := c.GetPostsForChannel(poll.ChannelID, 0, 1, "")
+		if apiResponse != nil && apiResponse.StatusCode != 200 {
+			log.Printf("Error: Failed to fetch posts. API statuscode: %v", apiResponse.StatusCode)
 			return
 		}
-		postId := result.Order[0]
-		if result.Posts[postId].Message == poll.Message+" #poll" {
-			err := Reaction(c, poll.ChannelId, user.Id, postId, poll.Emojis)
+		postID := result.Order[0]
+		if result.Posts[postID].Message == poll.Message+" #poll" {
+			err := reaction(c, poll.ChannelID, user.Id, postID, poll.Emojis)
 			if err != nil {
 				log.Print(err)
 				return
@@ -90,16 +94,16 @@ func (ps PollServer) addReaction(c *model.Client4, user *model.User, poll *PollR
 	}
 }
 
-func Reaction(c *model.Client4, channelId string, userId string, postId string, emojis []string) error {
+func reaction(c *model.Client4, channelID string, userID string, postID string, emojis []string) error {
 	for _, e := range emojis {
 		r := model.Reaction{
-			UserId:    userId,
-			PostId:    postId,
+			UserId:    userID,
+			PostId:    postID,
 			EmojiName: e,
 		}
-		_, api_response := c.SaveReaction(&r)
-		if api_response != nil && api_response.StatusCode != 200 {
-			return fmt.Errorf("Error: Failed to save reaction. API statuscode: %v", api_response.StatusCode)
+		_, apiResponse := c.SaveReaction(&r)
+		if apiResponse != nil && apiResponse.StatusCode != 200 {
+			return fmt.Errorf("Error: Failed to save reaction. API statuscode: %v", apiResponse.StatusCode)
 		}
 	}
 	return nil
