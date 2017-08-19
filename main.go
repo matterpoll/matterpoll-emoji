@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,11 +8,8 @@ import (
 	"github.com/kaakaa/matterpoll-emoji/poll"
 )
 
-var port = flag.Int("p", 8505, "port number")
-
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-	flag.Parse()
 
 	c, err := poll.LoadConf("config.json")
 	if err != nil {
@@ -21,7 +17,7 @@ func main() {
 	}
 	poll.Conf = c
 	http.HandleFunc("/poll", poll.PollCmd)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf("localhost:%d", c.Port), nil); err != nil {
 		log.Fatal(err)
 	}
 }
