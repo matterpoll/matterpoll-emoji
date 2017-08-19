@@ -7,23 +7,15 @@ DIST_DIRS := find * -type d -exec
 
 .PHONY: glide deps clean check-style test coverage cross-build dist
 
-all: deps test dist
-
-glide:
-ifeq ($(shell command -v glide 2> /dev/null),)
-	curl https://glide.sh/get | sh
-endif
-
-deps: glide
-	glide install
+all: test
 
 cross-build:
 	for os in darwin linux windows; do \
 		GOOS=$$os GOARCH=386 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-i686/$(NAME); \
-	done 
+	done
 	for os in darwin linux windows; do \
 		GOOS=$$os GOARCH=amd64 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-x86_64/$(NAME); \
-	done 
+	done
 
 clean:
 	rm -rf bin/*
