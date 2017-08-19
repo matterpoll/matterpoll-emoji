@@ -8,6 +8,12 @@ before_install:
   - sudo apt-get update -q
   - sudo apt-get install glide -y
   - mkdir -p $GOPATH/bin
+  - make deps
+
+script:
+  - make check-style
+  - make test
+  - make coverage
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

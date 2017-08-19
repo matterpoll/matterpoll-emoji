@@ -20,10 +20,10 @@ deps: glide
 cross-build:
 	for os in darwin linux windows; do \
 		GOOS=$$os GOARCH=386 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-i686/$(NAME); \
-	done 
+	done
 	for os in darwin linux windows; do \
 		GOOS=$$os GOARCH=amd64 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-x86_64/$(NAME); \
-	done 
+	done
 
 clean:
 	rm -rf bin/*
