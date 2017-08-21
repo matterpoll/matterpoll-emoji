@@ -44,7 +44,7 @@ check-style:
 	$(eval DIRECTORIES_NOVENDOR_FULLPATH := $(shell go list ./... | grep -v /vendor/))
 	$(eval GOFILES_NOVENDOR := $(shell find . -type f -name '*.go' -not -path './vendor/*'))
 
-	@echo running go fmt
+	@echo running gofmt
 	$(eval GOFMT_OUTPUT := $(shell gofmt -l -s $(GOFILES_NOVENDOR) 2>&1))
 	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
 		echo "gofmt success\n"; \
