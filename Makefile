@@ -37,6 +37,9 @@ coverage:
 	go test -coverprofile=coverage.txt -covermode=atomic ./poll/
 	go tool cover -html=coverage.txt
 
+install-tools:
+		go get -u github.com/golang/lint/golint
+
 check-style:
 	$(eval DIRECTORIES_NOVENDOR_FULLPATH := $(shell go list ./... | grep -v /vendor/))
 	$(eval GOFILES_NOVENDOR := $(shell find . -type f -name '*.go' -not -path './vendor/*'))
