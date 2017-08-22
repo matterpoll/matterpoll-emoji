@@ -17,13 +17,8 @@ endif
 deps: glide
 	glide install
 
-cross-build:
-	for os in darwin linux windows; do \
-		GOOS=$$os GOARCH=386 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-i686/$(NAME); \
-	done
-	for os in darwin linux windows; do \
-		GOOS=$$os GOARCH=amd64 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-x86_64/$(NAME); \
-	done
+run:
+	go run main.go -p 8505
 
 clean:
 	rm -rf bin/*
@@ -31,7 +26,7 @@ clean:
 	rm -rf dist/*
 
 test:
-	go test -v ./poll/
+	go test ./poll/
 
 coverage:
 	go test -coverprofile=coverage.txt -covermode=atomic ./poll/
@@ -54,6 +49,7 @@ check-style:
 		exit 1; \
 	fi
 
+
 	@echo running go vet
 	$(eval GO_VET_OUTPUT := $(shell go vet $(DIRECTORIES_NOVENDOR_FULLPATH) 2>&1))
 		@if [ ! "$(GO_VET_OUTPUT)" ]; then \
@@ -71,6 +67,14 @@ check-style:
 		echo "golint failure. You might want to fix these errors:"; \
 		golint $(DIRECTORIES_NOVENDOR_FULLPATH); \
 	fi
+
+cross-build:
+	for os in darwin linux windows; do \
+		GOOS=$$os GOARCH=386 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-i686/$(NAME); \
+	done
+	for os in darwin linux windows; do \
+		GOOS=$$os GOARCH=amd64 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-x86_64/$(NAME); \
+	done
 
 dist: cross-build
 	cd dist && \
