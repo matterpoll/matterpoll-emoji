@@ -26,7 +26,7 @@ clean:
 	rm -rf dist/*
 
 test:
-	go test -v ./poll/
+	go test ./poll/
 
 coverage:
 	go test -coverprofile=coverage.txt -covermode=atomic ./poll/
