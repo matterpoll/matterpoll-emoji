@@ -17,13 +17,8 @@ endif
 deps: glide
 	glide install
 
-cross-build:
-	for os in darwin linux windows; do \
-		GOOS=$$os GOARCH=386 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-i686/$(NAME); \
-	done
-	for os in darwin linux windows; do \
-		GOOS=$$os GOARCH=amd64 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-x86_64/$(NAME); \
-	done
+run:
+	go run main.go -p 8505
 
 clean:
 	rm -rf bin/*
@@ -31,7 +26,7 @@ clean:
 	rm -rf dist/*
 
 test:
-	go test -v ./poll/
+	go test ./poll/
 
 coverage:
 	go test -coverprofile=coverage.txt -covermode=atomic ./poll/
@@ -48,6 +43,14 @@ check-style:
 		echo "  gofmt -w -s $(GOFMT_OUTPUT)"; \
 		exit 1; \
 	fi
+
+cross-build:
+	for os in darwin linux windows; do \
+		GOOS=$$os GOARCH=386 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-i686/$(NAME); \
+	done
+	for os in darwin linux windows; do \
+		GOOS=$$os GOARCH=amd64 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-x86_64/$(NAME); \
+	done
 
 dist: cross-build
 	cd dist && \
