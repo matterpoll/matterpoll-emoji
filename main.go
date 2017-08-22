@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/kaakaa/matterpoll-emoji/poll"
 	"log"
 	"net/http"
+
+	"github.com/kaakaa/matterpoll-emoji/poll"
 )
 
 var port = flag.Int("p", 8505, "port number")

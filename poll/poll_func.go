@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	RESPONSE_USERNAME = "Matterpoll"
-	RESPONSE_ICON_URL = "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png"
+	ResponseUsername = "Matterpoll"
+	ResponseIconUrl  = "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png"
 )
 
 type PollServer struct {
@@ -34,8 +34,13 @@ func (ps PollServer) PollCmd(w http.ResponseWriter, r *http.Request) {
 	valid_poll := err == nil
 
 	var response model.CommandResponse
-	response.Username = RESPONSE_USERNAME
-	response.IconURL = RESPONSE_ICON_URL
+	response.Username = ResponseUsername
+	response.IconURL = ResponseIconUrl
+
+	if valid_poll && len(ps.Conf.Token) != 0 && ps.Conf.Token != poll.Token {
+		valid_poll = false
+		err = fmt.Errorf(ErrorTokenMissmatch)
+	}
 	if valid_poll {
 		response.ResponseType = model.COMMAND_RESPONSE_TYPE_IN_CHANNEL
 		response.Text = poll.Message + ` #poll`
@@ -45,11 +50,6 @@ func (ps PollServer) PollCmd(w http.ResponseWriter, r *http.Request) {
 	}
 	io.WriteString(w, response.ToJson())
 	if valid_poll {
-		if len(ps.Conf.Token) != 0 && ps.Conf.Token != poll.Token {
-			log.Print("Token missmatch. Check you config.json")
-			return
-		}
-
 		c := model.NewAPIv4Client(ps.Conf.Host)
 		user, err := ps.login(c)
 		if err != nil {
