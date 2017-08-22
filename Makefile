@@ -5,7 +5,7 @@ REVISION := $(shell git rev-parse --short HEAD)
 LDFLAGS := -ldflags="-s -w -X \"main.Version=$(VERSION)\" -X \"main.Revision=$(REVISION)\" -extldflags \"-static\""
 DIST_DIRS := find * -type d -exec
 
-.PHONY: glide deps clean check-style test coverage cross-build dist
+.PHONY: run clean test coverage check-style cross-build dist
 
 all: test
 
@@ -16,14 +16,6 @@ clean:
 	rm -rf bin/*
 	rm -rf vendor/*
 	rm -rf dist/*
-
-cross-build:
-	for os in darwin linux windows; do \
-		GOOS=$$os GOARCH=386 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-i686/$(NAME); \
-	done
-	for os in darwin linux windows; do \
-		GOOS=$$os GOARCH=amd64 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-x86_64/$(NAME); \
-	done
 
 test:
 	go test ./poll/
