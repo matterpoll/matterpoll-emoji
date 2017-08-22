@@ -49,8 +49,8 @@ Change parameter in `config.json` e.g.
 
 Setup `matterpoll-emoji` server
 ```
-glide install
-go run main.go
+make deps
+make run
 ```
 
 ## Usage
