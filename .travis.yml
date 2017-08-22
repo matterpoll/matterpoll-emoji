@@ -12,7 +12,6 @@ before_install:
 
 script:
   - make check-style
-  - make test
   - make coverage
 
 after_success:
