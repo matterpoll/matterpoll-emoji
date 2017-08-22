@@ -18,7 +18,7 @@ deps: glide
 	glide install
 
 run:
-	go run main.go -p 8505
+	go run main.go
 
 clean:
 	rm -rf bin/*
