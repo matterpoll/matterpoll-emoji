@@ -52,7 +52,7 @@ check-style:
 	fi
 
 	@echo running golint
-	$(eval GOLINT_OUTPUT := $(shell golint $(GOFILES_NOVENDOR) 2>&1))
+	$(eval GOLINT_OUTPUT := $(shell golint $(DIRECTORIES_NOVENDOR_FULLPATH) 2>&1))
 	@if [ ! "$(GOLINT_OUTPUT)" ]; then \
 		echo "golint success"; \
 	else \
