@@ -25,7 +25,7 @@ coverage:
 	go tool cover -html=coverage.txt
 
 install-tools:
-		go get -u github.com/golang/lint/golint
+	go get -u github.com/golang/lint/golint
 
 check-style:
 	$(eval DIRECTORIES_NOVENDOR_FULLPATH := $(shell go list ./... | grep -v /vendor/))
@@ -44,7 +44,7 @@ check-style:
 
 	@echo running go vet
 	$(eval GO_VET_OUTPUT := $(shell go vet $(DIRECTORIES_NOVENDOR_FULLPATH) 2>&1))
-		@if [ ! "$(GO_VET_OUTPUT)" ]; then \
+	@if [ ! "$(GO_VET_OUTPUT)" ]; then \
 		echo "go vet success\n"; \
 	else \
 		echo "go vet failure. You need to fix these errors:"; \
@@ -53,7 +53,7 @@ check-style:
 
 	@echo running golint
 	$(eval GOLINT_OUTPUT := $(shell golint $(GOFILES_NOVENDOR) 2>&1))
-		@if [ ! "$(GOLINT_OUTPUT)" ]; then \
+	@if [ ! "$(GOLINT_OUTPUT)" ]; then \
 		echo "golint success"; \
 	else \
 		echo "golint failure. You might want to fix these errors:"; \
