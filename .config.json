@@ -1,9 +1,9 @@
 {
-	"host": "http://mattermost.example.com:8065",
-	"listen": "localhost:8505",
-	"token": "9jrxak1ykxrmnaed9cps9i4cim",
-	"user": {
-		"id": "bot",
-		"password": "botbot"
-	}
+  "host": "http://mattermost.example.com:8065",
+  "listen": "localhost:8505",
+  "token": "9jrxak1ykxrmnaed9cps9i4cim",
+  "user": {
+    "id": "bot",
+    "password": "botbot"
+  }
 }
