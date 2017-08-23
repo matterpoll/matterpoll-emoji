@@ -1,9 +1,9 @@
 {
-	"host": "http://localhost:8065",
-	"port": 8505,
-	"token": "9jrxak1ykxrmnaed9cps9i4cim",
-	"user": {
-		"id": "bot",
-		"password": "botbot"
-	}
+  "host": "http://localhost:8065",
+  "listen": ":8505",
+  "token": "9jrxak1ykxrmnaed9cps9i4cim",
+  "user": {
+    "id": "bot",
+    "password": "botbot"
+  }
 }
