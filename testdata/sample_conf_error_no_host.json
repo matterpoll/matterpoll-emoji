@@ -1,5 +1,6 @@
 {
   "token": "9jrxak1ykxrmnaed9cps9i4cim",
+  "port": 8505,
 	"user": {
 		"id": "bot",
 		"password": "botbot"

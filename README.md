@@ -30,14 +30,16 @@ Copy the Token from your newly created slash command
 
 Clone this repository
 ```
-git clone https://github.com/kaakaa/matterpoll-emoji.git
-cd matterpoll-emoji
+go get -u https://github.com/kaakaa/matterpoll-emoji
+cd $GOPATH/src/github.com/kaakaa/matterpoll-emoji
 cp .config.json config.json
 ```
+
 Change parameter in `config.json` e.g.
 ```
 {
   "host": "http://mattermost.example.com:8065", # The URL of your Mattermost server
+  "port": 8505, # The port matterpoll should listen to requests
   "token": "9jrxak1ykxrmnaed9cps9i4cim", # The Token created my Mattermost
   "user": {
    "id": "bot",          # The username of an existing Mattermost account
@@ -46,9 +48,8 @@ Change parameter in `config.json` e.g.
 }
 ```
 
-Setup `matterpoll-emoji` server
+Run server
 ```
-make deps
 make run
 ```
 

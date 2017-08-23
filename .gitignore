@@ -1,4 +1,5 @@
-vendor/
+vendor/github.com/mattermost/platform/
+!vendor/github.com/mattermost/platform/model
 dist/
 config.json
 coverage.txt
