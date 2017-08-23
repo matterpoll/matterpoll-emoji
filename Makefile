@@ -10,7 +10,7 @@ DIST_DIRS := find * -type d -exec
 all: test
 
 run:
-	go run main.go -p 8505
+	go run main.go
 
 clean:
 	rm -rf bin/*
