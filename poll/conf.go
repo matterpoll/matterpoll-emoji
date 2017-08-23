@@ -7,15 +7,16 @@ import (
 )
 
 type PollConf struct {
-	Host  string
-	Port  int
-	Token string
-	User  PollUser
+	Host    string   `json:"host"`
+	Port    int      `json:"port"`
+	Token   string   `json:"token"`
+	User    PollUser `json:"user"`
+	Address string   `json:"address"`
 }
 
 type PollUser struct {
-	Id       string
-	Password string
+	Id       string `json:"id"`
+	Password string `json:"password"`
 }
 
 func LoadConf(path string) (*PollConf, error) {

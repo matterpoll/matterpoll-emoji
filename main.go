@@ -1,15 +1,15 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
-	"flag"
 	"net/http"
 
 	"github.com/kaakaa/matterpoll-emoji/poll"
 )
 
-var config  = flag.String(
+var config = flag.String(
 	"c", "config.json", "optional path to the config file")
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	}
 	ps := poll.PollServer{Conf: c}
 	http.HandleFunc("/poll", ps.PollCmd)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", c.Port), nil); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", c.Address, c.Port), nil); err != nil {
 		log.Fatal(err)
 	}
 }
