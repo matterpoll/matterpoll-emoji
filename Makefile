@@ -5,17 +5,9 @@ REVISION := $(shell git rev-parse --short HEAD)
 LDFLAGS := -ldflags="-s -w -X \"main.Version=$(VERSION)\" -X \"main.Revision=$(REVISION)\" -extldflags \"-static\""
 DIST_DIRS := find * -type d -exec
 
-.PHONY: glide deps clean check-style test coverage cross-build dist
+.PHONY: run clean test coverage check-style cross-build dist
 
-all: deps test dist
-
-glide:
-ifeq ($(shell command -v glide 2> /dev/null),)
-	curl https://glide.sh/get | sh
-endif
-
-deps: glide
-	glide install
+all: test
 
 run:
 	go run main.go -p 8505
