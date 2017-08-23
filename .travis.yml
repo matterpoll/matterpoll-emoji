@@ -6,7 +6,6 @@ go:
 
 before_install:
   - mkdir -p $GOPATH/bin
-  - make deps
 
 script:
   - make check-style
