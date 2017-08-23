@@ -5,9 +5,6 @@ go:
   - 1.9
 
 before_install:
-  - sudo add-apt-repository ppa:masterminds/glide -y
-  - sudo apt-get update -q
-  - sudo apt-get install glide -y
   - mkdir -p $GOPATH/bin
 
 after_success:
