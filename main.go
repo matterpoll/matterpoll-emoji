@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -21,7 +20,7 @@ func main() {
 	}
 	ps := poll.PollServer{Conf: c}
 	http.HandleFunc("/poll", ps.PollCmd)
-	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", c.Address, c.Port), nil); err != nil {
+	if err := http.ListenAndServe(c.Listen, nil); err != nil {
 		log.Fatal(err)
 	}
 }

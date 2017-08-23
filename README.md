@@ -39,7 +39,7 @@ Change parameter in `config.json` e.g.
 ```json
 {
   "host": "http://mattermost.example.com:8065",  // The URL of your Mattermost server
-  "port": 8505,  // The port matterpoll should listen to requests
+  "listen": ":8505",  // The address:port to listen on
   "address": "",  // Optional address to bind to and isten on
   "token": "9jrxak1ykxrmnaed9cps9i4cim",  // The Token created my Mattermost
   "user": {
