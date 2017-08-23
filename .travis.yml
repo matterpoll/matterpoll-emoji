@@ -7,6 +7,10 @@ go:
 before_install:
   - mkdir -p $GOPATH/bin
 
+script:
+  - make check-style
+  - make coverage
+
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 
