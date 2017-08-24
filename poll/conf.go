@@ -9,6 +9,7 @@ import (
 // Conf represents the login credentials of a mattermost user
 type Conf struct {
 	Host  string
+	Port  int
 	Token string
 	User  User
 }
@@ -36,6 +37,9 @@ func LoadConf(path string) (*Conf, error) {
 func (c *Conf) validate() error {
 	if len(c.Host) == 0 {
 		return fmt.Errorf("Config `host` is missing")
+	}
+	if c.Port == 0 {
+		return fmt.Errorf("Config `port` is missing")
 	}
 	if len(c.Token) == 0 {
 		//		Ignore this for now
