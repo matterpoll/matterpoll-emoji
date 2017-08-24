@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 )
 
@@ -40,14 +39,8 @@ func CommandResponseFromJson(data io.Reader) *CommandResponse {
 		return nil
 	}
 
-	// Ensure attachment fields are stored as strings
-	for _, attachment := range o.Attachments {
-		for _, field := range attachment.Fields {
-			if field.Value != nil {
-				field.Value = fmt.Sprintf("%v", field.Value)
-			}
-		}
-	}
+	o.Text = ExpandAnnouncement(o.Text)
+	o.Attachments = ProcessSlackAttachments(o.Attachments)
 
 	return &o
 }

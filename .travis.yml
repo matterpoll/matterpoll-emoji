@@ -14,6 +14,9 @@ script:
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 
+before_deploy:
+  - make dist
+
 deploy:
   provider: releases
   skip_cleanup: true
@@ -28,4 +31,4 @@ VobXYwjw5zpOulnfLIGzQnZsXbgqwBCF3Wee8JRrYQWXvBlvs="
   file: 'dist/*.{tar.gz,zip}'
   on:
     tags: true
-    go: '1.8'
+    go: '1.9'

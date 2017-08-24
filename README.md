@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/kaakaa/matterpoll-emoji.svg?branch=master)](https://travis-ci.org/kaakaa/matterpoll-emoji)
 [![Code Coverage](https://codecov.io/gh/kaakaa/matterpoll-emoji/branch/master/graph/badge.svg)](https://codecov.io/gh/kaakaa/matterpoll-emoji/branch/master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kaakaa/matterpoll-emoji)](https://goreportcard.com/report/github.com/kaakaa/matterpoll-emoji)
 
 Polling feature for Mattermost's custom slash command.
 
@@ -38,12 +39,12 @@ cp .config.json config.json
 Change parameter in `config.json` e.g.
 ```
 {
-  "host": "http://mattermost.example.com:8065", # The URL of your Mattermost server
-  "port": 8505, # The port matterpoll should listen to requests
-  "token": "9jrxak1ykxrmnaed9cps9i4cim", # The Token created my Mattermost
+  "host": "http://mattermost.example.com:8065",  // The URL of your Mattermost server
+  "listen": "localhost:8505",  // The address:port to listen on
+  "token": "9jrxak1ykxrmnaed9cps9i4cim",  // The Token created my Mattermost
   "user": {
-   "id": "bot",          # The username of an existing Mattermost account
-   "password": "botbot"  # The password of an existing Mattermost account
+   "id": "bot",          // The username of an existing Mattermost account
+   "password": "botbot"  // The password of an existing Mattermost account
  }
 }
 ```

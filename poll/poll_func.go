@@ -57,7 +57,6 @@ func (ps Server) Cmd(w http.ResponseWriter, r *http.Request) {
 	if validPoll {
 		c := model.NewAPIv4Client(ps.Conf.Host)
 		user, err := ps.login(c)
-
 		if err != nil {
 			log.Print(err)
 			return

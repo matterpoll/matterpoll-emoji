@@ -1,6 +1,6 @@
 # Contributing
 
-We wellcome pull requests from everyone.
+We welcome pull requests from everyone.
 
 Fork, then clone the repo:
 
