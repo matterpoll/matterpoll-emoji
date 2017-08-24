@@ -28,7 +28,7 @@ sDXpdfBpbFn6VNoL13E+DeqfyV8EUwXuGYWD2TgQIt0kucT2yKfsM0PCkgZtfkjiEU1/JQYTAywRFtFw
 rWL75XtHbipjno+zkeSiyP987JP2gIvgJ62UnerSitxBj1Snv90WWIEezaOuHD0wUlz3gJ/3xkgfz6O4ZR9daY9d86eZ5idi1LzOsNRXvgGjjzER4tf0WZZU3KeB/xOrm
 VobXYwjw5zpOulnfLIGzQnZsXbgqwBCF3Wee8JRrYQWXvBlvs="
   file_glob: true
-  file: 'dist/*.{tar.gz,zip}'u
+  file: 'dist/*.{tar.gz,zip}'
   on:
     tags: true
     go: '1.9'
