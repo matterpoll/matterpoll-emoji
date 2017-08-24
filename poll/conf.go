@@ -7,15 +7,15 @@ import (
 )
 
 type PollConf struct {
-	Host  string
-	Port  int
-	Token string
-	User  PollUser
+	Host   string   `json:"host"`
+	Token  string   `json:"token"`
+	User   PollUser `json:"user"`
+	Listen string   `json:"listen"`
 }
 
 type PollUser struct {
-	Id       string
-	Password string
+	Id       string `json:"id"`
+	Password string `json:"password"`
 }
 
 func LoadConf(path string) (*PollConf, error) {
@@ -35,8 +35,8 @@ func (c *PollConf) validate() error {
 	if len(c.Host) == 0 {
 		return fmt.Errorf("Config `host` is missing")
 	}
-	if c.Port == 0 {
-		return fmt.Errorf("Config `port` is missing")
+	if len(c.Listen) == 0 {
+		return fmt.Errorf("Config `listen` is missing")
 	}
 	if len(c.Token) == 0 {
 		return fmt.Errorf("Config `token` is missing")
