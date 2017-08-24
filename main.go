@@ -8,8 +8,7 @@ import (
 	"github.com/kaakaa/matterpoll-emoji/poll"
 )
 
-var config = flag.String(
-	"c", "config.json", "optional path to the config file")
+var config = flag.String("c", "config.json", "optional path to the config file")
 
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
