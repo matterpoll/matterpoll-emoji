@@ -1,8 +1,8 @@
 {
   "host": "http://localhost:8065",
-  "port": 8505,
-	"user": {
-		"id": "bot",
-		"password": "botbot"
-	}
+  "listen": ":8505",
+  "user": {
+    "id": "bot",
+    "password": "botbot"
+  }
 }
