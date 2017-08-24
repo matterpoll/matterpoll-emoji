@@ -15,10 +15,13 @@ type Request struct {
 }
 
 const (
-	backTick             = "`"
+	backTick = "`"
+	//ErrorTextWrongFormat is an error message and is used, if the the message isn`t formated correct
 	ErrorTextWrongFormat = `The message format is wrong. Try this instead: ` + backTick + `/poll \"What do you gys wanna grab for lunch?\" :pizza: :sushi:` + backTick
-	ErrorTokenMissmatch  = `An error occurred. Ask your administrator to check the Matterpoll config settings.`
-	ErrorWrongLength     = `An error occurred. Try the same command again. If it fails again, contact your administrator.`
+	// ErrorTokenMissmatch is an error message and is used, if the token comparison fails
+	ErrorTokenMissmatch = `An error occurred. Ask your administrator to check the Matterpoll config settings.`
+	// ErrorWrongLength is an error message and is used, if the channel id or the token have a wrong length
+	ErrorWrongLength = `An error occurred. Try the same command again. If it fails again, contact your administrator.`
 )
 
 // NewRequest validates the data in map and wraps it into a Request struct
@@ -27,12 +30,12 @@ func NewRequest(u map[string][]string) (*Request, error) {
 	for key, values := range u {
 		switch key {
 		case "channel_id":
-			if err := checkIdLength(values[0]); err != nil {
+			if err := checkIDLength(values[0]); err != nil {
 				return nil, err
 			}
 			p.ChannelID = values[0]
 		case "token":
-			if err := checkIdLength(values[0]); err != nil {
+			if err := checkIDLength(values[0]); err != nil {
 				return nil, err
 			}
 			p.Token = values[0]
@@ -76,7 +79,7 @@ func parseText(text string) (string, []string, error) {
 	return e[1], emojis, nil
 }
 
-func checkIdLength(id string) error {
+func checkIDLength(id string) error {
 	if len(id) != 26 {
 		return fmt.Errorf(ErrorWrongLength)
 	}

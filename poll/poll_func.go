@@ -2,26 +2,28 @@ package poll
 
 import (
 	"fmt"
-	"github.com/mattermost/platform/model"
 	"io"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/mattermost/platform/model"
 )
 
 const (
 	// ResponseUsername is the username which will be used to post the slack command response
 	ResponseUsername = "Matterpoll"
-	// ResponseIconUrl is the profile picture which will be used to post the slack command response
-	ResponseIconUrl  = "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png"
+	// ResponseIconURL is the profile picture which will be used to post the slack command response
+	ResponseIconURL = "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png"
 )
 
-type PollServer struct {
+// Server handles slash commands from a mattermost instance. One sever may handle multiple requests from one mattermost instance. It uses a provided configuration to handle the requests.
+type Server struct {
 	Conf *Conf
 }
 
 // Cmd handles a slash command request and sends back a response
-func (ps PollServer) Cmd(w http.ResponseWriter, r *http.Request) {
+func (ps Server) Cmd(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	// Check if Content Type is correct
 	if r.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
@@ -38,7 +40,7 @@ func (ps PollServer) Cmd(w http.ResponseWriter, r *http.Request) {
 
 	var response model.CommandResponse
 	response.Username = ResponseUsername
-	response.IconURL = ResponseIconUrl
+	response.IconURL = ResponseIconURL
 
 	if validPoll && len(ps.Conf.Token) != 0 && ps.Conf.Token != poll.Token {
 		validPoll = false
@@ -64,7 +66,7 @@ func (ps PollServer) Cmd(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ps PollServer) login(c *model.Client4) (*model.User, error) {
+func (ps Server) login(c *model.Client4) (*model.User, error) {
 	u, apiResponse := c.Login(ps.Conf.User.ID, ps.Conf.User.Password)
 	if apiResponse != nil && apiResponse.StatusCode != 200 {
 		return nil, fmt.Errorf("Error: Login failed. API statuscode: %v", apiResponse.StatusCode)
@@ -72,7 +74,7 @@ func (ps PollServer) login(c *model.Client4) (*model.User, error) {
 	return u, nil
 }
 
-func (ps PollServer) addReaction(c *model.Client4, user *model.User, poll *Request) {
+func (ps Server) addReaction(c *model.Client4, user *model.User, poll *Request) {
 	for try := 0; try < 5; try++ {
 		// Get the last post and compare it to our message text
 		result, apiResponse := c.GetPostsForChannel(poll.ChannelID, 0, 1, "")

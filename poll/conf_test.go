@@ -1,12 +1,13 @@
 package poll_test
 
 import (
-	"github.com/kaakaa/matterpoll-emoji/poll"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/kaakaa/matterpoll-emoji/poll"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestReadConf(t *testing.T) {
