@@ -7,6 +7,10 @@ go:
 before_install:
   - mkdir -p $GOPATH/bin
 
+
+before_script:
+  - make install-tools
+
 script:
   - make check-style
   - make coverage
