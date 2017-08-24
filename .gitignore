@@ -3,3 +3,4 @@ vendor/github.com/mattermost/platform/
 dist/
 config.json
 coverage.txt
+/matterpoll-emoji
