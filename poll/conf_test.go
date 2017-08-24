@@ -36,7 +36,7 @@ func TestValidate(t *testing.T) {
 		{"sample_conf_error.json", true},
 		{"sample_conf_error_no_host.json", true},
 		{"sample_conf_error_no_listen.json", true},
-		{"sample_conf_error_no_token.json", false},
+		{"sample_conf_error_no_token.json", true},
 		{"sample_conf_error_wrong_token_length.json", true},
 		{"sample_conf_error_no_user.json", true},
 		{"sample_conf_error_no_user_id.json", true},
