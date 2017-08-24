@@ -8,6 +8,7 @@ import (
 
 type PollConf struct {
 	Host  string
+	Port  int
 	Token string
 	User  PollUser
 }
@@ -33,6 +34,9 @@ func LoadConf(path string) (*PollConf, error) {
 func (c *PollConf) validate() error {
 	if len(c.Host) == 0 {
 		return fmt.Errorf("Config `host` is missing")
+	}
+	if c.Port == 0 {
+		return fmt.Errorf("Config `port` is missing")
 	}
 	if len(c.Token) == 0 {
 		//		Ignore this for now
