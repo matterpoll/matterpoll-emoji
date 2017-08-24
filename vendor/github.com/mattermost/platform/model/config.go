@@ -33,8 +33,9 @@ const (
 	WEBSERVER_MODE_GZIP     = "gzip"
 	WEBSERVER_MODE_DISABLED = "disabled"
 
-	GENERIC_NOTIFICATION = "generic"
-	FULL_NOTIFICATION    = "full"
+	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
+	GENERIC_NOTIFICATION            = "generic"
+	FULL_NOTIFICATION               = "full"
 
 	DIRECT_MESSAGE_ANY  = "any"
 	DIRECT_MESSAGE_TEAM = "team"
@@ -64,6 +65,9 @@ const (
 
 	EMAIL_BATCHING_BUFFER_SIZE = 256
 	EMAIL_BATCHING_INTERVAL    = 30
+
+	EMAIL_NOTIFICATION_CONTENTS_FULL    = "full"
+	EMAIL_NOTIFICATION_CONTENTS_GENERIC = "generic"
 
 	SITENAME_MAX_LENGTH = 30
 
@@ -118,6 +122,12 @@ const (
 
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR = "#333333"
+
+	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL      = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME            = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD            = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS   = 1
 )
 
 type ServiceSettings struct {
@@ -150,6 +160,7 @@ type ServiceSettings struct {
 	EnableInsecureOutgoingConnections        *bool
 	EnableMultifactorAuthentication          *bool
 	EnforceMultifactorAuthentication         *bool
+	EnableUserAccessTokens                   *bool
 	AllowCorsFrom                            *string
 	SessionLengthWebInDays                   *int
 	SessionLengthMobileInDays                *int
@@ -236,6 +247,8 @@ type PasswordSettings struct {
 
 type FileSettings struct {
 	EnableFileAttachments   *bool
+	EnableMobileUpload      *bool
+	EnableMobileDownload    *bool
 	MaxFileSize             *int64
 	DriverName              string
 	Directory               string
@@ -249,6 +262,7 @@ type FileSettings struct {
 	AmazonS3Endpoint        string
 	AmazonS3SSL             *bool
 	AmazonS3SignV2          *bool
+	AmazonS3SSE             *bool
 }
 
 type EmailSettings struct {
@@ -260,6 +274,7 @@ type EmailSettings struct {
 	FeedbackName                      string
 	FeedbackEmail                     string
 	FeedbackOrganization              *string
+	EnableSMTPAuth                    *bool
 	SMTPUsername                      string
 	SMTPPassword                      string
 	SMTPServer                        string
@@ -273,6 +288,7 @@ type EmailSettings struct {
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
 	SkipServerCertificateVerification *bool
+	EmailNotificationContentsType     *string
 }
 
 type RateLimitSettings struct {
@@ -423,17 +439,28 @@ type WebrtcSettings struct {
 	TurnSharedKey       *string
 }
 
-type ElasticSearchSettings struct {
-	ConnectionUrl   *string
-	Username        *string
-	Password        *string
-	EnableIndexing  *bool
-	EnableSearching *bool
-	Sniff           *bool
+type ElasticsearchSettings struct {
+	ConnectionUrl     *string
+	Username          *string
+	Password          *string
+	EnableIndexing    *bool
+	EnableSearching   *bool
+	Sniff             *bool
+	PostIndexReplicas *int
+	PostIndexShards   *int
 }
 
 type DataRetentionSettings struct {
 	Enable *bool
+}
+
+type JobSettings struct {
+	RunJobs      *bool
+	RunScheduler *bool
+}
+
+type PluginSettings struct {
+	Plugins map[string]interface{}
 }
 
 type Config struct {
@@ -460,8 +487,10 @@ type Config struct {
 	MetricsSettings       MetricsSettings
 	AnalyticsSettings     AnalyticsSettings
 	WebrtcSettings        WebrtcSettings
-	ElasticSearchSettings ElasticSearchSettings
+	ElasticsearchSettings ElasticsearchSettings
 	DataRetentionSettings DataRetentionSettings
+	JobSettings           JobSettings
+	PluginSettings        PluginSettings
 }
 
 func (o *Config) ToJson() string {
@@ -513,11 +542,6 @@ func (o *Config) SetDefaults() {
 		o.FileSettings.AmazonS3Endpoint = "s3.amazonaws.com"
 	}
 
-	if o.FileSettings.AmazonS3Region == "" {
-		// Defaults to "us-east-1" region.
-		o.FileSettings.AmazonS3Region = "us-east-1"
-	}
-
 	if o.FileSettings.AmazonS3SSL == nil {
 		o.FileSettings.AmazonS3SSL = new(bool)
 		*o.FileSettings.AmazonS3SSL = true // Secure by default.
@@ -528,9 +552,24 @@ func (o *Config) SetDefaults() {
 		// Signature v2 is not enabled by default.
 	}
 
+	if o.FileSettings.AmazonS3SSE == nil {
+		o.FileSettings.AmazonS3SSE = new(bool)
+		*o.FileSettings.AmazonS3SSE = false // Not Encrypted by default.
+	}
+
 	if o.FileSettings.EnableFileAttachments == nil {
 		o.FileSettings.EnableFileAttachments = new(bool)
 		*o.FileSettings.EnableFileAttachments = true
+	}
+
+	if o.FileSettings.EnableMobileUpload == nil {
+		o.FileSettings.EnableMobileUpload = new(bool)
+		*o.FileSettings.EnableMobileUpload = true
+	}
+
+	if o.FileSettings.EnableMobileDownload == nil {
+		o.FileSettings.EnableMobileDownload = new(bool)
+		*o.FileSettings.EnableMobileDownload = true
 	}
 
 	if o.FileSettings.MaxFileSize == nil {
@@ -598,6 +637,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.EnforceMultifactorAuthentication == nil {
 		o.ServiceSettings.EnforceMultifactorAuthentication = new(bool)
 		*o.ServiceSettings.EnforceMultifactorAuthentication = false
+	}
+
+	if o.ServiceSettings.EnableUserAccessTokens == nil {
+		o.ServiceSettings.EnableUserAccessTokens = new(bool)
+		*o.ServiceSettings.EnableUserAccessTokens = false
 	}
 
 	if o.PasswordSettings.MinimumLength == nil {
@@ -767,9 +811,27 @@ func (o *Config) SetDefaults() {
 		*o.EmailSettings.EmailBatchingInterval = EMAIL_BATCHING_INTERVAL
 	}
 
+	if o.EmailSettings.EnableSMTPAuth == nil {
+		o.EmailSettings.EnableSMTPAuth = new(bool)
+		if o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE {
+			*o.EmailSettings.EnableSMTPAuth = false
+		} else {
+			*o.EmailSettings.EnableSMTPAuth = true
+		}
+	}
+
+	if o.EmailSettings.ConnectionSecurity == CONN_SECURITY_PLAIN {
+		o.EmailSettings.ConnectionSecurity = CONN_SECURITY_NONE
+	}
+
 	if o.EmailSettings.SkipServerCertificateVerification == nil {
 		o.EmailSettings.SkipServerCertificateVerification = new(bool)
 		*o.EmailSettings.SkipServerCertificateVerification = false
+	}
+
+	if o.EmailSettings.EmailNotificationContentsType == nil {
+		o.EmailSettings.EmailNotificationContentsType = new(string)
+		*o.EmailSettings.EmailNotificationContentsType = EMAIL_NOTIFICATION_CONTENTS_FULL
 	}
 
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
@@ -1345,39 +1407,63 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.ClusterLogTimeoutMilliseconds = 2000
 	}
 
-	if o.ElasticSearchSettings.ConnectionUrl == nil {
-		o.ElasticSearchSettings.ConnectionUrl = new(string)
-		*o.ElasticSearchSettings.ConnectionUrl = ""
+	if o.ElasticsearchSettings.ConnectionUrl == nil {
+		o.ElasticsearchSettings.ConnectionUrl = new(string)
+		*o.ElasticsearchSettings.ConnectionUrl = ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL
 	}
 
-	if o.ElasticSearchSettings.Username == nil {
-		o.ElasticSearchSettings.Username = new(string)
-		*o.ElasticSearchSettings.Username = ""
+	if o.ElasticsearchSettings.Username == nil {
+		o.ElasticsearchSettings.Username = new(string)
+		*o.ElasticsearchSettings.Username = ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME
 	}
 
-	if o.ElasticSearchSettings.Password == nil {
-		o.ElasticSearchSettings.Password = new(string)
-		*o.ElasticSearchSettings.Password = ""
+	if o.ElasticsearchSettings.Password == nil {
+		o.ElasticsearchSettings.Password = new(string)
+		*o.ElasticsearchSettings.Password = ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD
 	}
 
-	if o.ElasticSearchSettings.EnableIndexing == nil {
-		o.ElasticSearchSettings.EnableIndexing = new(bool)
-		*o.ElasticSearchSettings.EnableIndexing = false
+	if o.ElasticsearchSettings.EnableIndexing == nil {
+		o.ElasticsearchSettings.EnableIndexing = new(bool)
+		*o.ElasticsearchSettings.EnableIndexing = false
 	}
 
-	if o.ElasticSearchSettings.EnableSearching == nil {
-		o.ElasticSearchSettings.EnableSearching = new(bool)
-		*o.ElasticSearchSettings.EnableSearching = false
+	if o.ElasticsearchSettings.EnableSearching == nil {
+		o.ElasticsearchSettings.EnableSearching = new(bool)
+		*o.ElasticsearchSettings.EnableSearching = false
 	}
 
-	if o.ElasticSearchSettings.Sniff == nil {
-		o.ElasticSearchSettings.Sniff = new(bool)
-		*o.ElasticSearchSettings.Sniff = true
+	if o.ElasticsearchSettings.Sniff == nil {
+		o.ElasticsearchSettings.Sniff = new(bool)
+		*o.ElasticsearchSettings.Sniff = true
+	}
+
+	if o.ElasticsearchSettings.PostIndexReplicas == nil {
+		o.ElasticsearchSettings.PostIndexReplicas = new(int)
+		*o.ElasticsearchSettings.PostIndexReplicas = ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS
+	}
+
+	if o.ElasticsearchSettings.PostIndexShards == nil {
+		o.ElasticsearchSettings.PostIndexShards = new(int)
+		*o.ElasticsearchSettings.PostIndexShards = ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS
 	}
 
 	if o.DataRetentionSettings.Enable == nil {
 		o.DataRetentionSettings.Enable = new(bool)
 		*o.DataRetentionSettings.Enable = false
+	}
+
+	if o.JobSettings.RunJobs == nil {
+		o.JobSettings.RunJobs = new(bool)
+		*o.JobSettings.RunJobs = true
+	}
+
+	if o.JobSettings.RunScheduler == nil {
+		o.JobSettings.RunScheduler = new(bool)
+		*o.JobSettings.RunScheduler = true
+	}
+
+	if o.PluginSettings.Plugins == nil {
+		o.PluginSettings.Plugins = make(map[string]interface{})
 	}
 
 	o.defaultWebrtcSettings()
@@ -1477,6 +1563,10 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.EmailSettings.EmailBatchingInterval < 30 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_batching_interval.app_error", nil, "")
+	}
+
+	if !(*o.EmailSettings.EmailNotificationContentsType == EMAIL_NOTIFICATION_CONTENTS_FULL || *o.EmailSettings.EmailNotificationContentsType == EMAIL_NOTIFICATION_CONTENTS_GENERIC) {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_notification_contents_type.app_error", nil, "")
 	}
 
 	if o.RateLimitSettings.MemoryStoreSize <= 0 {
@@ -1595,13 +1685,13 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.time_between_user_typing.app_error", nil, "")
 	}
 
-	if *o.ElasticSearchSettings.EnableIndexing {
-		if len(*o.ElasticSearchSettings.ConnectionUrl) == 0 {
+	if *o.ElasticsearchSettings.EnableIndexing {
+		if len(*o.ElasticsearchSettings.ConnectionUrl) == 0 {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "")
 		}
 	}
 
-	if *o.ElasticSearchSettings.EnableSearching && !*o.ElasticSearchSettings.EnableIndexing {
+	if *o.ElasticsearchSettings.EnableSearching && !*o.ElasticsearchSettings.EnableIndexing {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", nil, "")
 	}
 
@@ -1646,9 +1736,7 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
 
-	*o.ElasticSearchSettings.ConnectionUrl = FAKE_SETTING
-	*o.ElasticSearchSettings.Username = FAKE_SETTING
-	*o.ElasticSearchSettings.Password = FAKE_SETTING
+	*o.ElasticsearchSettings.Password = FAKE_SETTING
 }
 
 func (o *Config) defaultWebrtcSettings() {

@@ -5,7 +5,7 @@ REVISION := $(shell git rev-parse --short HEAD)
 LDFLAGS := -ldflags="-s -w -X \"main.Version=$(VERSION)\" -X \"main.Revision=$(REVISION)\" -extldflags \"-static\""
 DIST_DIRS := find * -type d -exec
 
-.PHONY: run clean test coverage check-style cross-build dist
+.PHONY: run clean test coverage install-tools check-style cross-build dist
 
 all: test
 

@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/kaakaa/matterpoll-emoji.svg?branch=master)](https://travis-ci.org/kaakaa/matterpoll-emoji)
 [![Code Coverage](https://codecov.io/gh/kaakaa/matterpoll-emoji/branch/master/graph/badge.svg)](https://codecov.io/gh/kaakaa/matterpoll-emoji/branch/master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kaakaa/matterpoll-emoji)](https://goreportcard.com/report/github.com/kaakaa/matterpoll-emoji)
 
 Polling feature for Mattermost's custom slash command.
 
@@ -34,6 +35,7 @@ go get -u https://github.com/kaakaa/matterpoll-emoji
 cd $GOPATH/src/github.com/kaakaa/matterpoll-emoji
 cp .config.json config.json
 ```
+
 Change parameter in `config.json` e.g.
 ```
 {
@@ -47,9 +49,8 @@ Change parameter in `config.json` e.g.
 }
 ```
 
-Setup `matterpoll-emoji` server
+Run server
 ```
-make deps
 make run
 ```
 
