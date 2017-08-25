@@ -16,7 +16,7 @@ type Request struct {
 
 const (
 	backTick = "`"
-	//ErrorTextWrongFormat is an error message and is used, if the the message isn`t formated correct
+	//ErrorTextWrongFormat is an error message and is used, if the message isn`t formated correct
 	ErrorTextWrongFormat = `The message format is wrong. Try this instead: ` + backTick + `/poll \"What do you gys wanna grab for lunch?\" :pizza: :sushi:` + backTick
 	// ErrorTokenMissmatch is an error message and is used, if the token comparison fails
 	ErrorTokenMissmatch = `An error occurred. Ask your administrator to check the Matterpoll config settings.`
