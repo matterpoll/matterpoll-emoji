@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/kaakaa/matterpoll-emoji.svg?branch=master)](https://travis-ci.org/kaakaa/matterpoll-emoji)
 [![Code Coverage](https://codecov.io/gh/kaakaa/matterpoll-emoji/branch/master/graph/badge.svg)](https://codecov.io/gh/kaakaa/matterpoll-emoji/branch/master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kaakaa/matterpoll-emoji)](https://goreportcard.com/report/github.com/kaakaa/matterpoll-emoji)
+[![Releases](https://img.shields.io/github/release/kaakaa/matterpoll-emoji.svg)](https://github.com/kaakaa/matterpoll-emoji/releases/latest)
 
 Polling feature for Mattermost's custom slash command.
 

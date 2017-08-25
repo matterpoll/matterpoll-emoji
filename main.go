@@ -17,8 +17,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ps := poll.PollServer{Conf: c}
-	http.HandleFunc("/poll", ps.PollCmd)
+	ps := poll.PollServer{c}
+	http.HandleFunc("/poll", ps.Cmd)
 	if err := http.ListenAndServe(c.Listen, nil); err != nil {
 		log.Fatal(err)
 	}
