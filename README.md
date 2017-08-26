@@ -60,7 +60,7 @@ Clone this repository and checkout the latest release. You can just use the mast
 ```
 go get -u https://github.com/kaakaa/matterpoll-emoji
 cd $GOPATH/src/github.com/kaakaa/matterpoll-emoji
-git co $(git describe --tags)
+git checkout $(git describe --tags)
 ```
 Copy the default config
 ```
