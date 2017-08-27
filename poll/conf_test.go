@@ -50,7 +50,7 @@ func TestValidate(t *testing.T) {
 		require.NotNil(p)
 
 		c, err := poll.LoadConf(p)
-		if test.ShouldError == true {
+		if test.ShouldError {
 			assert.NotNil(err)
 			assert.Nil(c)
 		} else {

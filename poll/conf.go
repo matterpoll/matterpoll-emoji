@@ -27,7 +27,9 @@ func LoadConf(path string) (*Conf, error) {
 		return nil, err
 	}
 	var p Conf
-	json.Unmarshal(b, &p)
+	if err := json.Unmarshal(b, &p); err != nil {
+		return nil, err
+	}
 	if err := p.validate(); err != nil {
 		return nil, err
 	}
