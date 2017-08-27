@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## 0.1.0 – 2017-08-XX
+## 0.1.0 – 2017-08-28
 ### Breaking changes
 - You need add two config parameter to `config.json`:
   - `listen` defines the ip address and port Matterpoll will listen for requests. Default is `localhost:8505`
