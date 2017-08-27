@@ -53,7 +53,10 @@ func (ps Server) Cmd(w http.ResponseWriter, r *http.Request) {
 		response.ResponseType = model.COMMAND_RESPONSE_TYPE_EPHEMERAL
 		response.Text = err.Error()
 	}
-	io.WriteString(w, response.ToJson())
+	if _, err := io.WriteString(w, response.ToJson()); err != nil {
+		log.Print(err)
+		return
+	}
 	if validPoll {
 		c := model.NewAPIv4Client(ps.Conf.Host)
 		user, err := ps.login(c)

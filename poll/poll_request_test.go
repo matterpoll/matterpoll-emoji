@@ -52,7 +52,7 @@ func TestNewPollRequest(t *testing.T) {
 		s["text"] = []string{test.Text}
 
 		p, err := poll.NewRequest(s)
-		if test.ShouldError == true {
+		if test.ShouldError {
 			assert.NotNil(err)
 			assert.Nil(p)
 		} else {
