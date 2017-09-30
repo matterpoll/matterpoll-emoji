@@ -53,6 +53,8 @@ func (ps Server) Cmd(w http.ResponseWriter, r *http.Request) {
 		response.ResponseType = model.COMMAND_RESPONSE_TYPE_EPHEMERAL
 		response.Text = err.Error()
 	}
+
+	w.Header().Add("Content-Type", "application/json")
 	if _, err := io.WriteString(w, response.ToJson()); err != nil {
 		log.Print(err)
 		return
