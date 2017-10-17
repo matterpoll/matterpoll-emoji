@@ -178,6 +178,14 @@ func (c *Client4) GetFileRoute(fileId string) string {
 	return fmt.Sprintf(c.GetFilesRoute()+"/%v", fileId)
 }
 
+func (c *Client4) GetPluginsRoute() string {
+	return fmt.Sprintf("/plugins")
+}
+
+func (c *Client4) GetPluginRoute(pluginId string) string {
+	return fmt.Sprintf(c.GetPluginsRoute()+"/%v", pluginId)
+}
+
 func (c *Client4) GetSystemRoute() string {
 	return fmt.Sprintf("/system")
 }
@@ -244,6 +252,10 @@ func (c *Client4) GetLdapRoute() string {
 
 func (c *Client4) GetBrandRoute() string {
 	return fmt.Sprintf("/brand")
+}
+
+func (c *Client4) GetDataRetentionRoute() string {
+	return fmt.Sprintf("/data_retention")
 }
 
 func (c *Client4) GetElasticsearchRoute() string {
@@ -319,7 +331,7 @@ func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, 
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
-		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
+		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)
 	} else if rp.StatusCode == 304 {
 		return rp, nil
 	} else if rp.StatusCode >= 300 {
@@ -1562,13 +1574,13 @@ func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (*Channe
 }
 
 // ViewChannel performs a view action for a user. Synonymous with switching channels or marking channels as read by a user.
-func (c *Client4) ViewChannel(userId string, view *ChannelView) (bool, *Response) {
+func (c *Client4) ViewChannel(userId string, view *ChannelView) (*ChannelViewResponse, *Response) {
 	url := fmt.Sprintf(c.GetChannelsRoute()+"/members/%v/view", userId)
 	if r, err := c.DoApiPost(url, view.ToJson()); err != nil {
-		return false, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return CheckStatusOK(r), BuildResponse(r)
+		return ChannelViewResponseFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -1800,6 +1812,16 @@ func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*Po
 	} else {
 		defer closeBody(r)
 		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// DoPostAction performs a post action.
+func (c *Client4) DoPostAction(postId, actionId string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPostRoute(postId)+"/actions/"+actionId, ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
@@ -2613,6 +2635,16 @@ func (c *Client4) CreateOAuthApp(app *OAuthApp) (*OAuthApp, *Response) {
 	}
 }
 
+// UpdateOAuthApp
+func (c *Client4) UpdateOAuthApp(app *OAuthApp) (*OAuthApp, *Response) {
+	if r, err := c.DoApiPut(c.GetOAuthAppRoute(app.Id), app.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return OAuthAppFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetOAuthApps gets a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
 func (c *Client4) GetOAuthApps(page, perPage int) ([]*OAuthApp, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
@@ -2711,11 +2743,23 @@ func (c *Client4) TestElasticsearch() (bool, *Response) {
 
 // PurgeElasticsearchIndexes immediately deletes all Elasticsearch indexes.
 func (c *Client4) PurgeElasticsearchIndexes() (bool, *Response) {
-	if r, err := c.DoApiPost(c.GetElasticsearchRoute()+"/test", ""); err != nil {
+	if r, err := c.DoApiPost(c.GetElasticsearchRoute()+"/purge_indexes", ""); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Data Retention Section
+
+// GetDataRetentionPolicy will get the current server data retention policy details.
+func (c *Client4) GetDataRetentionPolicy() (*DataRetentionPolicy, *Response) {
+	if r, err := c.DoApiGet(c.GetDataRetentionRoute()+"/policy", ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return DataRetentionPolicyFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -2764,7 +2808,10 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 
 // ExecuteCommand executes a given command.
 func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *Response) {
-	commandArgs := &CommandArgs{ChannelId: channelId, Command: command}
+	commandArgs := &CommandArgs{
+		ChannelId: channelId,
+		Command:   command,
+	}
 	if r, err := c.DoApiPost(c.GetCommandsRoute()+"/execute", commandArgs.ToJson()); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
@@ -2849,17 +2896,17 @@ func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emo
 	writer := multipart.NewWriter(body)
 
 	if part, err := writer.CreateFormFile("image", filename); err != nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error())}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error(), 0)}
 	} else if _, err = io.Copy(part, bytes.NewBuffer(image)); err != nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error())}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error(), 0)}
 	}
 
 	if err := writer.WriteField("emoji", emoji.ToJson()); err != nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.emoji.app_error", nil, err.Error())}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.emoji.app_error", nil, err.Error(), 0)}
 	}
 
 	if err := writer.Close(); err != nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.writer.app_error", nil, err.Error())}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.writer.app_error", nil, err.Error(), 0)}
 	}
 
 	return c.DoEmojiUploadFile(c.GetEmojisRoute(), body.Bytes(), writer.FormDataContentType())
@@ -3007,5 +3054,77 @@ func (c *Client4) CancelJob(jobId string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Plugin Section
+
+// UploadPlugin takes an io.Reader stream pointing to the contents of a .tar.gz plugin.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response) {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("plugin", "plugin.tar.gz"); err != nil {
+		return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.writer.app_error", nil, err.Error(), 0)}
+	} else if _, err = io.Copy(part, file); err != nil {
+		return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.writer.app_error", nil, err.Error(), 0)}
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.writer.app_error", nil, err.Error(), 0)}
+	}
+
+	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetPluginsRoute(), body)
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
+		return nil, BuildErrorResponse(rp, NewAppError("UploadPlugin", "model.client.connecting.app_error", nil, err.Error(), 0))
+	} else {
+		defer closeBody(rp)
+
+		if rp.StatusCode >= 300 {
+			return nil, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
+		} else {
+			return ManifestFromJson(rp.Body), BuildResponse(rp)
+		}
+	}
+}
+
+// GetPlugins will return a list of plugin manifests for currently active plugins.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) GetPlugins() ([]*Manifest, *Response) {
+	if r, err := c.DoApiGet(c.GetPluginsRoute(), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ManifestListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// RemovePlugin will deactivate and delete a plugin.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) RemovePlugin(id string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetPluginRoute(id)); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetWebappPlugins will return a list of plugins that the webapp should download.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response) {
+	if r, err := c.DoApiGet(c.GetPluginsRoute()+"/webapp", ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ManifestListFromJson(r.Body), BuildResponse(r)
 	}
 }
