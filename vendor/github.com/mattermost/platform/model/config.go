@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
+	"time"
 )
 
 const (
@@ -71,16 +73,21 @@ const (
 
 	SITENAME_MAX_LENGTH = 30
 
-	SERVICE_SETTINGS_DEFAULT_SITE_URL        = ""
-	SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE   = ""
-	SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE    = ""
-	SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT    = 300
-	SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT   = 300
-	SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM = ""
+	SERVICE_SETTINGS_DEFAULT_SITE_URL           = ""
+	SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE      = ""
+	SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE       = ""
+	SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT       = 300
+	SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT      = 300
+	SERVICE_SETTINGS_DEFAULT_MAX_LOGIN_ATTEMPTS = 10
+	SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM    = ""
+	SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS = ":8065"
 
+	TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM       = 50
 	TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT        = ""
 	TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT  = ""
 	TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT = 300
+
+	SQL_SETTINGS_DEFAULT_DATA_SOURCE = "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"
 
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
@@ -123,17 +130,26 @@ const (
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR = "#333333"
 
-	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL      = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME            = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD            = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS = 1
-	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS   = 1
+	TEAM_SETTINGS_DEFAULT_TEAM_TEXT = "default"
+
+	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL                  = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME                        = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                        = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS             = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS               = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS      = 365
+	ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME = "03:00"
+	ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX                    = ""
+
+	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
+	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
+	DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME = "02:00"
 )
 
 type ServiceSettings struct {
 	SiteURL                                  *string
 	LicenseFileLocation                      *string
-	ListenAddress                            string
+	ListenAddress                            *string
 	ConnectionSecurity                       *string
 	TLSCertFile                              *string
 	TLSKeyFile                               *string
@@ -142,7 +158,7 @@ type ServiceSettings struct {
 	Forward80To443                           *bool
 	ReadTimeout                              *int
 	WriteTimeout                             *int
-	MaximumLoginAttempts                     int
+	MaximumLoginAttempts                     *int
 	GoroutineHealthThreshold                 *int
 	GoogleDeveloperKey                       string
 	EnableOAuthServiceProvider               bool
@@ -158,6 +174,7 @@ type ServiceSettings struct {
 	EnableDeveloper                          *bool
 	EnableSecurityFixAlert                   *bool
 	EnableInsecureOutgoingConnections        *bool
+	AllowedUntrustedInternalConnections      *string
 	EnableMultifactorAuthentication          *bool
 	EnforceMultifactorAuthentication         *bool
 	EnableUserAccessTokens                   *bool
@@ -166,6 +183,7 @@ type ServiceSettings struct {
 	SessionLengthMobileInDays                *int
 	SessionLengthSSOInDays                   *int
 	SessionCacheInMinutes                    *int
+	SessionIdleTimeoutInMinutes              *int
 	WebsocketSecurePort                      *int
 	WebsocketPort                            *int
 	WebserverMode                            *string
@@ -215,12 +233,12 @@ type SSOSettings struct {
 }
 
 type SqlSettings struct {
-	DriverName               string
-	DataSource               string
+	DriverName               *string
+	DataSource               *string
 	DataSourceReplicas       []string
 	DataSourceSearchReplicas []string
-	MaxIdleConns             int
-	MaxOpenConns             int
+	MaxIdleConns             *int
+	MaxOpenConns             *int
 	Trace                    bool
 	AtRestEncryptKey         string
 	QueryTimeout             *int
@@ -250,7 +268,7 @@ type FileSettings struct {
 	EnableMobileUpload      *bool
 	EnableMobileDownload    *bool
 	MaxFileSize             *int64
-	DriverName              string
+	DriverName              *string
 	Directory               string
 	EnablePublicLink        bool
 	PublicLinkSalt          *string
@@ -263,6 +281,7 @@ type FileSettings struct {
 	AmazonS3SSL             *bool
 	AmazonS3SignV2          *bool
 	AmazonS3SSE             *bool
+	AmazonS3Trace           *bool
 }
 
 type EmailSettings struct {
@@ -293,9 +312,9 @@ type EmailSettings struct {
 
 type RateLimitSettings struct {
 	Enable           *bool
-	PerSec           int
+	PerSec           *int
 	MaxBurst         *int
-	MemoryStoreSize  int
+	MemoryStoreSize  *int
 	VaryByRemoteAddr bool
 	VaryByHeader     string
 }
@@ -306,15 +325,12 @@ type PrivacySettings struct {
 }
 
 type SupportSettings struct {
-	TermsOfServiceLink       *string
-	PrivacyPolicyLink        *string
-	AboutLink                *string
-	HelpLink                 *string
-	ReportAProblemLink       *string
-	AdministratorsGuideLink  *string
-	TroubleshootingForumLink *string
-	CommercialSupportLink    *string
-	SupportEmail             *string
+	TermsOfServiceLink *string
+	PrivacyPolicyLink  *string
+	AboutLink          *string
+	HelpLink           *string
+	ReportAProblemLink *string
+	SupportEmail       *string
 }
 
 type AnnouncementSettings struct {
@@ -325,9 +341,16 @@ type AnnouncementSettings struct {
 	AllowBannerDismissal *bool
 }
 
+type ThemeSettings struct {
+	EnableThemeSelection *bool
+	DefaultTheme         *string
+	AllowCustomThemes    *bool
+	AllowedThemes        []string
+}
+
 type TeamSettings struct {
 	SiteName                            string
-	MaxUsersPerTeam                     int
+	MaxUsersPerTeam                     *int
 	EnableTeamCreation                  bool
 	EnableUserCreation                  bool
 	EnableOpenServer                    *bool
@@ -344,10 +367,22 @@ type TeamSettings struct {
 	RestrictPublicChannelDeletion       *string
 	RestrictPrivateChannelDeletion      *string
 	RestrictPrivateChannelManageMembers *string
+	EnableXToLeaveChannelsFromLHS       *bool
 	UserStatusAwayTimeout               *int64
 	MaxChannelsPerTeam                  *int64
 	MaxNotificationsPerChannel          *int64
+	EnableConfirmNotificationsToChannel *bool
 	TeammateNameDisplay                 *string
+	ExperimentalTownSquareIsReadOnly    *bool
+}
+
+type ClientRequirements struct {
+	AndroidLatestVersion string
+	AndroidMinVersion    string
+	DesktopLatestVersion string
+	DesktopMinVersion    string
+	IosLatestVersion     string
+	IosMinVersion        string
 }
 
 type LdapSettings struct {
@@ -440,18 +475,25 @@ type WebrtcSettings struct {
 }
 
 type ElasticsearchSettings struct {
-	ConnectionUrl     *string
-	Username          *string
-	Password          *string
-	EnableIndexing    *bool
-	EnableSearching   *bool
-	Sniff             *bool
-	PostIndexReplicas *int
-	PostIndexShards   *int
+	ConnectionUrl               *string
+	Username                    *string
+	Password                    *string
+	EnableIndexing              *bool
+	EnableSearching             *bool
+	Sniff                       *bool
+	PostIndexReplicas           *int
+	PostIndexShards             *int
+	AggregatePostsAfterDays     *int
+	PostsAggregatorJobStartTime *string
+	IndexPrefix                 *string
 }
 
 type DataRetentionSettings struct {
-	Enable *bool
+	EnableMessageDeletion *bool
+	EnableFileDeletion    *bool
+	MessageRetentionDays  *int
+	FileRetentionDays     *int
+	DeletionJobStartTime  *string
 }
 
 type JobSettings struct {
@@ -460,12 +502,14 @@ type JobSettings struct {
 }
 
 type PluginSettings struct {
+	Enable  *bool
 	Plugins map[string]interface{}
 }
 
 type Config struct {
 	ServiceSettings       ServiceSettings
 	TeamSettings          TeamSettings
+	ClientRequirements    ClientRequirements
 	SqlSettings           SqlSettings
 	LogSettings           LogSettings
 	PasswordSettings      PasswordSettings
@@ -475,6 +519,7 @@ type Config struct {
 	PrivacySettings       PrivacySettings
 	SupportSettings       SupportSettings
 	AnnouncementSettings  AnnouncementSettings
+	ThemeSettings         ThemeSettings
 	GitLabSettings        SSOSettings
 	GoogleSettings        SSOSettings
 	Office365Settings     SSOSettings
@@ -515,6 +560,10 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	return nil
 }
 
+func (o *Config) getClientRequirementsFromConfig() ClientRequirements {
+	return o.ClientRequirements
+}
+
 func ConfigFromJson(data io.Reader) *Config {
 	decoder := json.NewDecoder(data)
 	var o Config
@@ -528,13 +577,38 @@ func ConfigFromJson(data io.Reader) *Config {
 
 func (o *Config) SetDefaults() {
 
+	if o.SqlSettings.DriverName == nil {
+		o.SqlSettings.DriverName = new(string)
+		*o.SqlSettings.DriverName = DATABASE_DRIVER_MYSQL
+	}
+
+	if o.SqlSettings.DataSource == nil {
+		o.SqlSettings.DataSource = new(string)
+		*o.SqlSettings.DataSource = SQL_SETTINGS_DEFAULT_DATA_SOURCE
+	}
+
 	if len(o.SqlSettings.AtRestEncryptKey) == 0 {
 		o.SqlSettings.AtRestEncryptKey = NewRandomString(32)
+	}
+
+	if o.SqlSettings.MaxIdleConns == nil {
+		o.SqlSettings.MaxIdleConns = new(int)
+		*o.SqlSettings.MaxIdleConns = 20
+	}
+
+	if o.SqlSettings.MaxOpenConns == nil {
+		o.SqlSettings.MaxOpenConns = new(int)
+		*o.SqlSettings.MaxOpenConns = 300
 	}
 
 	if o.SqlSettings.QueryTimeout == nil {
 		o.SqlSettings.QueryTimeout = new(int)
 		*o.SqlSettings.QueryTimeout = 30
+	}
+
+	if o.FileSettings.DriverName == nil {
+		o.FileSettings.DriverName = new(string)
+		*o.FileSettings.DriverName = IMAGE_DRIVER_LOCAL
 	}
 
 	if o.FileSettings.AmazonS3Endpoint == "" {
@@ -555,6 +629,11 @@ func (o *Config) SetDefaults() {
 	if o.FileSettings.AmazonS3SSE == nil {
 		o.FileSettings.AmazonS3SSE = new(bool)
 		*o.FileSettings.AmazonS3SSE = false // Not Encrypted by default.
+	}
+
+	if o.FileSettings.AmazonS3Trace == nil {
+		o.FileSettings.AmazonS3Trace = new(bool)
+		*o.FileSettings.AmazonS3Trace = false
 	}
 
 	if o.FileSettings.EnableFileAttachments == nil {
@@ -602,6 +681,12 @@ func (o *Config) SetDefaults() {
 
 	if o.ServiceSettings.LicenseFileLocation == nil {
 		o.ServiceSettings.LicenseFileLocation = new(string)
+		*o.ServiceSettings.LicenseFileLocation = ""
+	}
+
+	if o.ServiceSettings.ListenAddress == nil {
+		o.ServiceSettings.ListenAddress = new(string)
+		*o.ServiceSettings.ListenAddress = SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS
 	}
 
 	if o.ServiceSettings.EnableAPIv3 == nil {
@@ -627,6 +712,10 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.EnableInsecureOutgoingConnections == nil {
 		o.ServiceSettings.EnableInsecureOutgoingConnections = new(bool)
 		*o.ServiceSettings.EnableInsecureOutgoingConnections = false
+	}
+
+	if o.ServiceSettings.AllowedUntrustedInternalConnections == nil {
+		o.ServiceSettings.AllowedUntrustedInternalConnections = new(string)
 	}
 
 	if o.ServiceSettings.EnableMultifactorAuthentication == nil {
@@ -667,6 +756,11 @@ func (o *Config) SetDefaults() {
 	if o.PasswordSettings.Symbol == nil {
 		o.PasswordSettings.Symbol = new(bool)
 		*o.PasswordSettings.Symbol = false
+	}
+
+	if o.TeamSettings.MaxUsersPerTeam == nil {
+		o.TeamSettings.MaxUsersPerTeam = new(int)
+		*o.TeamSettings.MaxUsersPerTeam = TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM
 	}
 
 	if o.TeamSettings.EnableCustomBrand == nil {
@@ -746,6 +840,11 @@ func (o *Config) SetDefaults() {
 		*o.TeamSettings.RestrictPrivateChannelManageMembers = PERMISSIONS_ALL
 	}
 
+	if o.TeamSettings.EnableXToLeaveChannelsFromLHS == nil {
+		o.TeamSettings.EnableXToLeaveChannelsFromLHS = new(bool)
+		*o.TeamSettings.EnableXToLeaveChannelsFromLHS = false
+	}
+
 	if o.TeamSettings.UserStatusAwayTimeout == nil {
 		o.TeamSettings.UserStatusAwayTimeout = new(int64)
 		*o.TeamSettings.UserStatusAwayTimeout = TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT
@@ -759,6 +858,16 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.MaxNotificationsPerChannel == nil {
 		o.TeamSettings.MaxNotificationsPerChannel = new(int64)
 		*o.TeamSettings.MaxNotificationsPerChannel = 1000
+	}
+
+	if o.TeamSettings.EnableConfirmNotificationsToChannel == nil {
+		o.TeamSettings.EnableConfirmNotificationsToChannel = new(bool)
+		*o.TeamSettings.EnableConfirmNotificationsToChannel = true
+	}
+
+	if o.TeamSettings.ExperimentalTownSquareIsReadOnly == nil {
+		o.TeamSettings.ExperimentalTownSquareIsReadOnly = new(bool)
+		*o.TeamSettings.ExperimentalTownSquareIsReadOnly = false
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
@@ -879,33 +988,6 @@ func (o *Config) SetDefaults() {
 		*o.SupportSettings.ReportAProblemLink = SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK
 	}
 
-	if !IsSafeLink(o.SupportSettings.AdministratorsGuideLink) {
-		*o.SupportSettings.AdministratorsGuideLink = ""
-	}
-
-	if o.SupportSettings.AdministratorsGuideLink == nil {
-		o.SupportSettings.AdministratorsGuideLink = new(string)
-		*o.SupportSettings.AdministratorsGuideLink = SUPPORT_SETTINGS_DEFAULT_ADMINISTRATORS_GUIDE_LINK
-	}
-
-	if !IsSafeLink(o.SupportSettings.TroubleshootingForumLink) {
-		*o.SupportSettings.TroubleshootingForumLink = ""
-	}
-
-	if o.SupportSettings.TroubleshootingForumLink == nil {
-		o.SupportSettings.TroubleshootingForumLink = new(string)
-		*o.SupportSettings.TroubleshootingForumLink = SUPPORT_SETTINGS_DEFAULT_TROUBLESHOOTING_FORUM_LINK
-	}
-
-	if !IsSafeLink(o.SupportSettings.CommercialSupportLink) {
-		*o.SupportSettings.CommercialSupportLink = ""
-	}
-
-	if o.SupportSettings.CommercialSupportLink == nil {
-		o.SupportSettings.CommercialSupportLink = new(string)
-		*o.SupportSettings.CommercialSupportLink = SUPPORT_SETTINGS_DEFAULT_COMMERCIAL_SUPPORT_LINK
-	}
-
 	if o.SupportSettings.SupportEmail == nil {
 		o.SupportSettings.SupportEmail = new(string)
 		*o.SupportSettings.SupportEmail = SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL
@@ -934,6 +1016,25 @@ func (o *Config) SetDefaults() {
 	if o.AnnouncementSettings.AllowBannerDismissal == nil {
 		o.AnnouncementSettings.AllowBannerDismissal = new(bool)
 		*o.AnnouncementSettings.AllowBannerDismissal = true
+	}
+
+	if o.ThemeSettings.EnableThemeSelection == nil {
+		o.ThemeSettings.EnableThemeSelection = new(bool)
+		*o.ThemeSettings.EnableThemeSelection = true
+	}
+
+	if o.ThemeSettings.DefaultTheme == nil {
+		o.ThemeSettings.DefaultTheme = new(string)
+		*o.ThemeSettings.DefaultTheme = TEAM_SETTINGS_DEFAULT_TEAM_TEXT
+	}
+
+	if o.ThemeSettings.AllowCustomThemes == nil {
+		o.ThemeSettings.AllowCustomThemes = new(bool)
+		*o.ThemeSettings.AllowCustomThemes = true
+	}
+
+	if o.ThemeSettings.AllowedThemes == nil {
+		o.ThemeSettings.AllowedThemes = []string{}
 	}
 
 	if o.LdapSettings.Enable == nil {
@@ -1054,6 +1155,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.SessionCacheInMinutes == nil {
 		o.ServiceSettings.SessionCacheInMinutes = new(int)
 		*o.ServiceSettings.SessionCacheInMinutes = 10
+	}
+
+	if o.ServiceSettings.SessionIdleTimeoutInMinutes == nil {
+		o.ServiceSettings.SessionIdleTimeoutInMinutes = new(int)
+		*o.ServiceSettings.SessionIdleTimeoutInMinutes = 0
 	}
 
 	if o.ServiceSettings.EnableCommands == nil {
@@ -1322,14 +1428,24 @@ func (o *Config) SetDefaults() {
 		*o.RateLimitSettings.Enable = false
 	}
 
-	if o.ServiceSettings.GoroutineHealthThreshold == nil {
-		o.ServiceSettings.GoroutineHealthThreshold = new(int)
-		*o.ServiceSettings.GoroutineHealthThreshold = -1
+	if o.RateLimitSettings.PerSec == nil {
+		o.RateLimitSettings.PerSec = new(int)
+		*o.RateLimitSettings.PerSec = 10
 	}
 
 	if o.RateLimitSettings.MaxBurst == nil {
 		o.RateLimitSettings.MaxBurst = new(int)
 		*o.RateLimitSettings.MaxBurst = 100
+	}
+
+	if o.RateLimitSettings.MemoryStoreSize == nil {
+		o.RateLimitSettings.MemoryStoreSize = new(int)
+		*o.RateLimitSettings.MemoryStoreSize = 10000
+	}
+
+	if o.ServiceSettings.GoroutineHealthThreshold == nil {
+		o.ServiceSettings.GoroutineHealthThreshold = new(int)
+		*o.ServiceSettings.GoroutineHealthThreshold = -1
 	}
 
 	if o.ServiceSettings.ConnectionSecurity == nil {
@@ -1365,6 +1481,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.WriteTimeout == nil {
 		o.ServiceSettings.WriteTimeout = new(int)
 		*o.ServiceSettings.WriteTimeout = SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT
+	}
+
+	if o.ServiceSettings.MaximumLoginAttempts == nil {
+		o.ServiceSettings.MaximumLoginAttempts = new(int)
+		*o.ServiceSettings.MaximumLoginAttempts = SERVICE_SETTINGS_DEFAULT_MAX_LOGIN_ATTEMPTS
 	}
 
 	if o.ServiceSettings.Forward80To443 == nil {
@@ -1447,9 +1568,44 @@ func (o *Config) SetDefaults() {
 		*o.ElasticsearchSettings.PostIndexShards = ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS
 	}
 
-	if o.DataRetentionSettings.Enable == nil {
-		o.DataRetentionSettings.Enable = new(bool)
-		*o.DataRetentionSettings.Enable = false
+	if o.ElasticsearchSettings.AggregatePostsAfterDays == nil {
+		o.ElasticsearchSettings.AggregatePostsAfterDays = new(int)
+		*o.ElasticsearchSettings.AggregatePostsAfterDays = ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS
+	}
+
+	if o.ElasticsearchSettings.PostsAggregatorJobStartTime == nil {
+		o.ElasticsearchSettings.PostsAggregatorJobStartTime = new(string)
+		*o.ElasticsearchSettings.PostsAggregatorJobStartTime = ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME
+	}
+
+	if o.ElasticsearchSettings.IndexPrefix == nil {
+		o.ElasticsearchSettings.IndexPrefix = new(string)
+		*o.ElasticsearchSettings.IndexPrefix = ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX
+	}
+
+	if o.DataRetentionSettings.EnableMessageDeletion == nil {
+		o.DataRetentionSettings.EnableMessageDeletion = new(bool)
+		*o.DataRetentionSettings.EnableMessageDeletion = false
+	}
+
+	if o.DataRetentionSettings.EnableFileDeletion == nil {
+		o.DataRetentionSettings.EnableFileDeletion = new(bool)
+		*o.DataRetentionSettings.EnableMessageDeletion = false
+	}
+
+	if o.DataRetentionSettings.MessageRetentionDays == nil {
+		o.DataRetentionSettings.MessageRetentionDays = new(int)
+		*o.DataRetentionSettings.MessageRetentionDays = DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS
+	}
+
+	if o.DataRetentionSettings.FileRetentionDays == nil {
+		o.DataRetentionSettings.FileRetentionDays = new(int)
+		*o.DataRetentionSettings.FileRetentionDays = DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS
+	}
+
+	if o.DataRetentionSettings.DeletionJobStartTime == nil {
+		o.DataRetentionSettings.DeletionJobStartTime = new(string)
+		*o.DataRetentionSettings.DeletionJobStartTime = DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME
 	}
 
 	if o.JobSettings.RunJobs == nil {
@@ -1462,6 +1618,11 @@ func (o *Config) SetDefaults() {
 		*o.JobSettings.RunScheduler = true
 	}
 
+	if o.PluginSettings.Enable == nil {
+		o.PluginSettings.Enable = new(bool)
+		*o.PluginSettings.Enable = false
+	}
+
 	if o.PluginSettings.Plugins == nil {
 		o.PluginSettings.Plugins = make(map[string]interface{})
 	}
@@ -1470,229 +1631,367 @@ func (o *Config) SetDefaults() {
 }
 
 func (o *Config) IsValid() *AppError {
-
-	if o.ServiceSettings.MaximumLoginAttempts <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "")
-	}
-
-	if len(*o.ServiceSettings.SiteURL) != 0 {
-		if _, err := url.ParseRequestURI(*o.ServiceSettings.SiteURL); err != nil {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "")
-		}
-	}
-
-	if len(o.ServiceSettings.ListenAddress) == 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "")
+	if len(*o.ServiceSettings.SiteURL) == 0 && *o.EmailSettings.EnableEmailBatching {
+		return NewAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "")
+		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*o.ServiceSettings.SiteURL) == 0 && *o.EmailSettings.EnableEmailBatching {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "")
-	}
-
-	if o.TeamSettings.MaxUsersPerTeam <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "")
-	}
-
-	if *o.TeamSettings.MaxChannelsPerTeam <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "")
-	}
-
-	if *o.TeamSettings.MaxNotificationsPerChannel <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_notify_per_channel.app_error", nil, "")
-	}
-
-	if !(*o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_ANY || *o.TeamSettings.RestrictDirectMessage == DIRECT_MESSAGE_TEAM) {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.restrict_direct_message.app_error", nil, "")
-	}
-
-	if !(*o.TeamSettings.TeammateNameDisplay == SHOW_FULLNAME || *o.TeamSettings.TeammateNameDisplay == SHOW_NICKNAME_FULLNAME || *o.TeamSettings.TeammateNameDisplay == SHOW_USERNAME) {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "")
-	}
-
-	if len(o.SqlSettings.AtRestEncryptKey) < 32 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.encrypt_sql.app_error", nil, "")
-	}
-
-	if !(o.SqlSettings.DriverName == DATABASE_DRIVER_MYSQL || o.SqlSettings.DriverName == DATABASE_DRIVER_POSTGRES) {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_driver.app_error", nil, "")
-	}
-
-	if o.SqlSettings.MaxIdleConns <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_idle.app_error", nil, "")
-	}
-
-	if *o.SqlSettings.QueryTimeout <= 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.sql_query_timeout.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(o.SqlSettings.DataSource) == 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_data_src.app_error", nil, "")
-	}
-
-	if o.SqlSettings.MaxOpenConns <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_max_conn.app_error", nil, "")
-	}
-
-	if *o.FileSettings.MaxFileSize <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "")
-	}
-
-	if !(o.FileSettings.DriverName == IMAGE_DRIVER_LOCAL || o.FileSettings.DriverName == IMAGE_DRIVER_S3) {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_driver.app_error", nil, "")
-	}
-
-	if len(*o.FileSettings.PublicLinkSalt) < 32 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_salt.app_error", nil, "")
-	}
-
-	if !(o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_PLAIN) {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "")
-	}
-
-	if len(o.EmailSettings.InviteSalt) < 32 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_salt.app_error", nil, "")
-	}
-
-	if *o.EmailSettings.EmailBatchingBufferSize <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_batching_buffer_size.app_error", nil, "")
-	}
-
-	if *o.EmailSettings.EmailBatchingInterval < 30 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_batching_interval.app_error", nil, "")
-	}
-
-	if !(*o.EmailSettings.EmailNotificationContentsType == EMAIL_NOTIFICATION_CONTENTS_FULL || *o.EmailSettings.EmailNotificationContentsType == EMAIL_NOTIFICATION_CONTENTS_GENERIC) {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_notification_contents_type.app_error", nil, "")
-	}
-
-	if o.RateLimitSettings.MemoryStoreSize <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.rate_mem.app_error", nil, "")
-	}
-
-	if o.RateLimitSettings.PerSec <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.rate_sec.app_error", nil, "")
-	}
-
-	if !(*o.LdapSettings.ConnectionSecurity == CONN_SECURITY_NONE || *o.LdapSettings.ConnectionSecurity == CONN_SECURITY_TLS || *o.LdapSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS) {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "")
-	}
-
-	if *o.LdapSettings.SyncIntervalMinutes <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_sync_interval.app_error", nil, "")
-	}
-
-	if *o.LdapSettings.MaxPageSize < 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_max_page_size.app_error", nil, "")
-	}
-
-	if *o.LdapSettings.Enable {
-		if *o.LdapSettings.LdapServer == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_server", nil, "")
-		}
-
-		if *o.LdapSettings.BaseDN == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_basedn", nil, "")
-		}
-
-		if *o.LdapSettings.EmailAttribute == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_email", nil, "")
-		}
-
-		if *o.LdapSettings.UsernameAttribute == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_username", nil, "")
-		}
-
-		if *o.LdapSettings.IdAttribute == "" {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.ldap_id", nil, "")
-		}
-	}
-
-	if *o.SamlSettings.Enable {
-		if len(*o.SamlSettings.IdpUrl) == 0 || !IsValidHttpUrl(*o.SamlSettings.IdpUrl) {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "")
-		}
-
-		if len(*o.SamlSettings.IdpDescriptorUrl) == 0 || !IsValidHttpUrl(*o.SamlSettings.IdpDescriptorUrl) {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "")
-		}
-
-		if len(*o.SamlSettings.IdpCertificateFile) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_idp_cert.app_error", nil, "")
-		}
-
-		if len(*o.SamlSettings.EmailAttribute) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "")
-		}
-
-		if len(*o.SamlSettings.UsernameAttribute) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_username_attribute.app_error", nil, "")
-		}
-
-		if *o.SamlSettings.Verify {
-			if len(*o.SamlSettings.AssertionConsumerServiceURL) == 0 || !IsValidHttpUrl(*o.SamlSettings.AssertionConsumerServiceURL) {
-				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "")
-			}
-		}
-
-		if *o.SamlSettings.Encrypt {
-			if len(*o.SamlSettings.PrivateKeyFile) == 0 {
-				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_private_key.app_error", nil, "")
-			}
-
-			if len(*o.SamlSettings.PublicCertificateFile) == 0 {
-				return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_public_cert.app_error", nil, "")
-			}
-		}
-
-		if len(*o.SamlSettings.EmailAttribute) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "")
-		}
-	}
-
-	if *o.PasswordSettings.MinimumLength < PASSWORD_MINIMUM_LENGTH || *o.PasswordSettings.MinimumLength > PASSWORD_MAXIMUM_LENGTH {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]interface{}{"MinLength": PASSWORD_MINIMUM_LENGTH, "MaxLength": PASSWORD_MAXIMUM_LENGTH}, "")
-	}
-
-	if len(o.TeamSettings.SiteName) > SITENAME_MAX_LENGTH {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]interface{}{"MaxLength": SITENAME_MAX_LENGTH}, "")
-	}
-
-	if *o.RateLimitSettings.MaxBurst <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.max_burst.app_error", nil, "")
-	}
-
-	if err := o.isValidWebrtcSettings(); err != nil {
+	if err := o.TeamSettings.isValid(); err != nil {
 		return err
 	}
 
-	if !(*o.ServiceSettings.ConnectionSecurity == CONN_SECURITY_NONE || *o.ServiceSettings.ConnectionSecurity == CONN_SECURITY_TLS) {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "")
+	if err := o.SqlSettings.isValid(); err != nil {
+		return err
 	}
 
-	if *o.ServiceSettings.ReadTimeout <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.read_timeout.app_error", nil, "")
+	if err := o.FileSettings.isValid(); err != nil {
+		return err
 	}
 
-	if *o.ServiceSettings.WriteTimeout <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.write_timeout.app_error", nil, "")
+	if err := o.EmailSettings.isValid(); err != nil {
+		return err
 	}
 
-	if *o.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds < 1000 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.time_between_user_typing.app_error", nil, "")
+	if err := o.LdapSettings.isValid(); err != nil {
+		return err
 	}
 
-	if *o.ElasticsearchSettings.EnableIndexing {
-		if len(*o.ElasticsearchSettings.ConnectionUrl) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "")
+	if err := o.SamlSettings.isValid(); err != nil {
+		return err
+	}
+
+	if *o.PasswordSettings.MinimumLength < PASSWORD_MINIMUM_LENGTH || *o.PasswordSettings.MinimumLength > PASSWORD_MAXIMUM_LENGTH {
+		return NewAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]interface{}{"MinLength": PASSWORD_MINIMUM_LENGTH, "MaxLength": PASSWORD_MAXIMUM_LENGTH}, "", http.StatusBadRequest)
+	}
+
+	if err := o.RateLimitSettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.WebrtcSettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.ServiceSettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.ElasticsearchSettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.DataRetentionSettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.LocalizationSettings.isValid(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ts *TeamSettings) isValid() *AppError {
+	if *ts.MaxUsersPerTeam <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ts.MaxChannelsPerTeam <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ts.MaxNotificationsPerChannel <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_notify_per_channel.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !(*ts.RestrictDirectMessage == DIRECT_MESSAGE_ANY || *ts.RestrictDirectMessage == DIRECT_MESSAGE_TEAM) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.restrict_direct_message.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !(*ts.TeammateNameDisplay == SHOW_FULLNAME || *ts.TeammateNameDisplay == SHOW_NICKNAME_FULLNAME || *ts.TeammateNameDisplay == SHOW_USERNAME) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(ts.SiteName) > SITENAME_MAX_LENGTH {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]interface{}{"MaxLength": SITENAME_MAX_LENGTH}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (ss *SqlSettings) isValid() *AppError {
+	if len(ss.AtRestEncryptKey) < 32 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.encrypt_sql.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !(*ss.DriverName == DATABASE_DRIVER_MYSQL || *ss.DriverName == DATABASE_DRIVER_POSTGRES) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_driver.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.MaxIdleConns <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_idle.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.QueryTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_query_timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*ss.DataSource) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_data_src.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.MaxOpenConns <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_max_conn.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (fs *FileSettings) isValid() *AppError {
+	if *fs.MaxFileSize <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !(*fs.DriverName == IMAGE_DRIVER_LOCAL || *fs.DriverName == IMAGE_DRIVER_S3) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.file_driver.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*fs.PublicLinkSalt) < 32 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.file_salt.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (es *EmailSettings) isValid() *AppError {
+	if !(es.ConnectionSecurity == CONN_SECURITY_NONE || es.ConnectionSecurity == CONN_SECURITY_TLS || es.ConnectionSecurity == CONN_SECURITY_STARTTLS || es.ConnectionSecurity == CONN_SECURITY_PLAIN) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(es.InviteSalt) < 32 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.email_salt.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *es.EmailBatchingBufferSize <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.email_batching_buffer_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *es.EmailBatchingInterval < 30 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.email_batching_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !(*es.EmailNotificationContentsType == EMAIL_NOTIFICATION_CONTENTS_FULL || *es.EmailNotificationContentsType == EMAIL_NOTIFICATION_CONTENTS_GENERIC) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.email_notification_contents_type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (rls *RateLimitSettings) isValid() *AppError {
+	if *rls.MemoryStoreSize <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.rate_mem.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *rls.PerSec <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.rate_sec.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *rls.MaxBurst <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_burst.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (ls *LdapSettings) isValid() *AppError {
+	if !(*ls.ConnectionSecurity == CONN_SECURITY_NONE || *ls.ConnectionSecurity == CONN_SECURITY_TLS || *ls.ConnectionSecurity == CONN_SECURITY_STARTTLS) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ls.SyncIntervalMinutes <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.ldap_sync_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ls.MaxPageSize < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.ldap_max_page_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ls.Enable {
+		if *ls.LdapServer == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_server", nil, "", http.StatusBadRequest)
+		}
+
+		if *ls.BaseDN == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_basedn", nil, "", http.StatusBadRequest)
+		}
+
+		if *ls.EmailAttribute == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_email", nil, "", http.StatusBadRequest)
+		}
+
+		if *ls.UsernameAttribute == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_username", nil, "", http.StatusBadRequest)
+		}
+
+		if *ls.IdAttribute == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_id", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	if *o.ElasticsearchSettings.EnableSearching && !*o.ElasticsearchSettings.EnableIndexing {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", nil, "")
+	return nil
+}
+
+func (ss *SamlSettings) isValid() *AppError {
+	if *ss.Enable {
+		if len(*ss.IdpUrl) == 0 || !IsValidHttpUrl(*ss.IdpUrl) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if len(*ss.IdpDescriptorUrl) == 0 || !IsValidHttpUrl(*ss.IdpDescriptorUrl) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if len(*ss.IdpCertificateFile) == 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_cert.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if len(*ss.EmailAttribute) == 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if len(*ss.UsernameAttribute) == 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_username_attribute.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if *ss.Verify {
+			if len(*ss.AssertionConsumerServiceURL) == 0 || !IsValidHttpUrl(*ss.AssertionConsumerServiceURL) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+
+		if *ss.Encrypt {
+			if len(*ss.PrivateKeyFile) == 0 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_private_key.app_error", nil, "", http.StatusBadRequest)
+			}
+
+			if len(*ss.PublicCertificateFile) == 0 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_public_cert.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+
+		if len(*ss.EmailAttribute) == 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
+func (ws *WebrtcSettings) isValid() *AppError {
+	if *ws.Enable {
+		if len(*ws.GatewayWebsocketUrl) == 0 || !IsValidWebsocketUrl(*ws.GatewayWebsocketUrl) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_ws_url.app_error", nil, "", http.StatusBadRequest)
+		} else if len(*ws.GatewayAdminUrl) == 0 || !IsValidHttpUrl(*ws.GatewayAdminUrl) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_url.app_error", nil, "", http.StatusBadRequest)
+		} else if len(*ws.GatewayAdminSecret) == 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_secret.app_error", nil, "", http.StatusBadRequest)
+		} else if len(*ws.StunURI) != 0 && !IsValidTurnOrStunServer(*ws.StunURI) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_stun_uri.app_error", nil, "", http.StatusBadRequest)
+		} else if len(*ws.TurnURI) != 0 {
+			if !IsValidTurnOrStunServer(*ws.TurnURI) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_uri.app_error", nil, "", http.StatusBadRequest)
+			}
+			if len(*ws.TurnUsername) == 0 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_username.app_error", nil, "", http.StatusBadRequest)
+			} else if len(*ws.TurnSharedKey) == 0 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_shared_key.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (ss *ServiceSettings) isValid() *AppError {
+	if !(*ss.ConnectionSecurity == CONN_SECURITY_NONE || *ss.ConnectionSecurity == CONN_SECURITY_TLS) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.ReadTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.read_timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.WriteTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.write_timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.TimeBetweenUserTypingUpdatesMilliseconds < 1000 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.time_between_user_typing.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.MaximumLoginAttempts <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*ss.SiteURL) != 0 {
+		if _, err := url.ParseRequestURI(*ss.SiteURL); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if len(*ss.ListenAddress) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (ess *ElasticsearchSettings) isValid() *AppError {
+	if *ess.EnableIndexing {
+		if len(*ess.ConnectionUrl) == 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if *ess.EnableSearching && !*ess.EnableIndexing {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ess.AggregatePostsAfterDays < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if _, err := time.Parse("15:04", *ess.PostsAggregatorJobStartTime); err != nil {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (drs *DataRetentionSettings) isValid() *AppError {
+	if *drs.MessageRetentionDays <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *drs.FileRetentionDays <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if _, err := time.Parse("15:04", *drs.DeletionJobStartTime); err != nil {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.deletion_job_start_time.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (ls *LocalizationSettings) isValid() *AppError {
+	if len(*ls.AvailableLocales) > 0 {
+		if !strings.Contains(*ls.AvailableLocales, *ls.DefaultClientLocale) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.localization.available_locales.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	return nil
@@ -1725,7 +2024,7 @@ func (o *Config) Sanitize() {
 		o.GitLabSettings.Secret = FAKE_SETTING
 	}
 
-	o.SqlSettings.DataSource = FAKE_SETTING
+	*o.SqlSettings.DataSource = FAKE_SETTING
 	o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
 	for i := range o.SqlSettings.DataSourceReplicas {
@@ -1779,30 +2078,4 @@ func (o *Config) defaultWebrtcSettings() {
 		o.WebrtcSettings.TurnSharedKey = new(string)
 		*o.WebrtcSettings.TurnSharedKey = ""
 	}
-}
-
-func (o *Config) isValidWebrtcSettings() *AppError {
-	if *o.WebrtcSettings.Enable {
-		if len(*o.WebrtcSettings.GatewayWebsocketUrl) == 0 || !IsValidWebsocketUrl(*o.WebrtcSettings.GatewayWebsocketUrl) {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_ws_url.app_error", nil, "")
-		} else if len(*o.WebrtcSettings.GatewayAdminUrl) == 0 || !IsValidHttpUrl(*o.WebrtcSettings.GatewayAdminUrl) {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_url.app_error", nil, "")
-		} else if len(*o.WebrtcSettings.GatewayAdminSecret) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_secret.app_error", nil, "")
-		} else if len(*o.WebrtcSettings.StunURI) != 0 && !IsValidTurnOrStunServer(*o.WebrtcSettings.StunURI) {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_stun_uri.app_error", nil, "")
-		} else if len(*o.WebrtcSettings.TurnURI) != 0 {
-			if !IsValidTurnOrStunServer(*o.WebrtcSettings.TurnURI) {
-				return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_uri.app_error", nil, "")
-			}
-			if len(*o.WebrtcSettings.TurnUsername) == 0 {
-				return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_username.app_error", nil, "")
-			} else if len(*o.WebrtcSettings.TurnSharedKey) == 0 {
-				return NewLocAppError("Config.IsValid", "model.config.is_valid.webrtc_turn_shared_key.app_error", nil, "")
-			}
-
-		}
-	}
-
-	return nil
 }

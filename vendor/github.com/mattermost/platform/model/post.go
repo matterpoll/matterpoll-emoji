@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/http"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -30,6 +32,7 @@ const (
 	POST_HASHTAGS_MAX_RUNES    = 1000
 	POST_MESSAGE_MAX_RUNES     = 4000
 	POST_PROPS_MAX_RUNES       = 8000
+	POST_CUSTOM_TYPE_PREFIX    = "custom_"
 )
 
 type Post struct {
@@ -68,8 +71,31 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
+type PostAction struct {
+	Id          string                 `json:"id"`
+	Name        string                 `json:"name"`
+	Integration *PostActionIntegration `json:"integration,omitempty"`
+}
+
+type PostActionIntegration struct {
+	URL     string          `json:"url,omitempty"`
+	Context StringInterface `json:"context,omitempty"`
+}
+
+type PostActionIntegrationRequest struct {
+	UserId  string          `json:"user_id"`
+	Context StringInterface `json:"context,omitempty"`
+}
+
+type PostActionIntegrationResponse struct {
+	Update        *Post  `json:"update"`
+	EphemeralText string `json:"ephemeral_text"`
+}
+
 func (o *Post) ToJson() string {
-	b, err := json.Marshal(o)
+	copy := *o
+	copy.StripActionIntegrations()
+	b, err := json.Marshal(&copy)
 	if err != nil {
 		return ""
 	} else {
@@ -95,68 +121,68 @@ func (o *Post) Etag() string {
 func (o *Post) IsValid() *AppError {
 
 	if len(o.Id) != 26 {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.id.app_error", nil, "")
+		return NewAppError("Post.IsValid", "model.post.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if o.CreateAt == 0 {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.create_at.app_error", nil, "id="+o.Id)
+		return NewAppError("Post.IsValid", "model.post.is_valid.create_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if o.UpdateAt == 0 {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.update_at.app_error", nil, "id="+o.Id)
+		return NewAppError("Post.IsValid", "model.post.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if len(o.UserId) != 26 {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.user_id.app_error", nil, "")
+		return NewAppError("Post.IsValid", "model.post.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.ChannelId) != 26 {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.channel_id.app_error", nil, "")
+		return NewAppError("Post.IsValid", "model.post.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(len(o.RootId) == 26 || len(o.RootId) == 0) {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "")
+		return NewAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(len(o.ParentId) == 26 || len(o.ParentId) == 0) {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.parent_id.app_error", nil, "")
+		return NewAppError("Post.IsValid", "model.post.is_valid.parent_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.ParentId) == 26 && len(o.RootId) == 0 {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.root_parent.app_error", nil, "")
+		return NewAppError("Post.IsValid", "model.post.is_valid.root_parent.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(len(o.OriginalId) == 26 || len(o.OriginalId) == 0) {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.original_id.app_error", nil, "")
+		return NewAppError("Post.IsValid", "model.post.is_valid.original_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(o.Message) > POST_MESSAGE_MAX_RUNES {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.msg.app_error", nil, "id="+o.Id)
+		return NewAppError("Post.IsValid", "model.post.is_valid.msg.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(o.Hashtags) > POST_HASHTAGS_MAX_RUNES {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.hashtags.app_error", nil, "id="+o.Id)
+		return NewAppError("Post.IsValid", "model.post.is_valid.hashtags.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	// should be removed once more message types are supported
 	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE || o.Type == POST_ADD_REMOVE ||
 		o.Type == POST_JOIN_CHANNEL || o.Type == POST_LEAVE_CHANNEL ||
 		o.Type == POST_REMOVE_FROM_CHANNEL || o.Type == POST_ADD_TO_CHANNEL ||
 		o.Type == POST_SLACK_ATTACHMENT || o.Type == POST_HEADER_CHANGE || o.Type == POST_PURPOSE_CHANGE ||
-		o.Type == POST_DISPLAYNAME_CHANGE || o.Type == POST_CHANNEL_DELETED) {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type)
+		o.Type == POST_DISPLAYNAME_CHANGE || o.Type == POST_CHANNEL_DELETED ||
+		strings.HasPrefix(o.Type, POST_CUSTOM_TYPE_PREFIX)) {
+		return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(ArrayToJson(o.Filenames)) > POST_FILENAMES_MAX_RUNES {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.filenames.app_error", nil, "id="+o.Id)
+		return NewAppError("Post.IsValid", "model.post.is_valid.filenames.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(ArrayToJson(o.FileIds)) > POST_FILEIDS_MAX_RUNES {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id)
+		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(StringInterfaceToJson(o.Props)) > POST_PROPS_MAX_RUNES {
-		return NewLocAppError("Post.IsValid", "model.post.is_valid.props.app_error", nil, "id="+o.Id)
+		return NewAppError("Post.IsValid", "model.post.is_valid.props.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	return nil
@@ -174,7 +200,10 @@ func (o *Post) PreSave() {
 	}
 
 	o.UpdateAt = o.CreateAt
+	o.PreCommit()
+}
 
+func (o *Post) PreCommit() {
 	if o.Props == nil {
 		o.Props = make(map[string]interface{})
 	}
@@ -186,6 +215,8 @@ func (o *Post) PreSave() {
 	if o.FileIds == nil {
 		o.FileIds = []string{}
 	}
+
+	o.GenerateActionIds()
 }
 
 func (o *Post) MakeNonNil() {
@@ -245,4 +276,69 @@ func PostPatchFromJson(data io.Reader) *PostPatch {
 	}
 
 	return &post
+}
+
+func (r *PostActionIntegrationRequest) ToJson() string {
+	b, err := json.Marshal(r)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func (o *Post) Attachments() []*SlackAttachment {
+	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+		return attachments
+	}
+	var ret []*SlackAttachment
+	if attachments, ok := o.Props["attachments"].([]interface{}); ok {
+		for _, attachment := range attachments {
+			if enc, err := json.Marshal(attachment); err == nil {
+				var decoded SlackAttachment
+				if json.Unmarshal(enc, &decoded) == nil {
+					ret = append(ret, &decoded)
+				}
+			}
+		}
+	}
+	return ret
+}
+
+func (o *Post) StripActionIntegrations() {
+	attachments := o.Attachments()
+	if o.Props["attachments"] != nil {
+		o.Props["attachments"] = attachments
+	}
+	for _, attachment := range attachments {
+		for _, action := range attachment.Actions {
+			action.Integration = nil
+		}
+	}
+}
+
+func (o *Post) GetAction(id string) *PostAction {
+	for _, attachment := range o.Attachments() {
+		for _, action := range attachment.Actions {
+			if action.Id == id {
+				return action
+			}
+		}
+	}
+	return nil
+}
+
+func (o *Post) GenerateActionIds() {
+	if o.Props["attachments"] != nil {
+		o.Props["attachments"] = o.Attachments()
+	}
+	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+		for _, attachment := range attachments {
+			for _, action := range attachment.Actions {
+				if action.Id == "" {
+					action.Id = NewId()
+				}
+			}
+		}
+	}
 }
