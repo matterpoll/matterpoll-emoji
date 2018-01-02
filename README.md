@@ -32,6 +32,8 @@ Create a `Custom Slash Command` from Integration > Slash Commands > Add Slash Co
 
 Copy the Token from your newly created slash command
 
+**Caution**: If you run `matterpoll-emoji` on same host as Mattermost server, you have to add `localhost` to [**Allow untrusted internal connections to**](https://docs.mattermost.com/administration/config-settings.html#allow-untrusted-internal-connections-to) option.
+
 ### Setup server
 
 #### Run pre compiled release
