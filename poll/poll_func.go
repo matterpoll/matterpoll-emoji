@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 const (

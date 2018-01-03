@@ -1,12 +1,12 @@
-hash: 30a46a46887cc6b0bd152986d6158a29bfbbe011e4f0c6575c0d4ef5ff73c768
-updated: 2018-01-03T16:21:20.794766383+09:00
+hash: 8ea3a2e7c69d00d2eb89f5a31b0ec5b2a186fbd82bf803ae913c85e3b26086a6
+updated: 2018-01-03T17:15:36.659254466+09:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
   repo: https://github.com/mattermost/log4go.git
 - name: github.com/gorilla/websocket
   version: ea4d1f681babbce9545c9c5f3d5194a789c89f5b
-- name: github.com/mattermost/platform
+- name: github.com/mattermost/mattermost-server
   version: 03f5c939deb4a6ab2fd01639b5570799e4118bab
   subpackages:
   - model
