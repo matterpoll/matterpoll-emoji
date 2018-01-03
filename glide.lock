@@ -1,5 +1,5 @@
-hash: c646decd09b7b873ecacb9453a652d00b0fb324f9120be76516bdcc637785499
-updated: 2017-10-17T03:58:47.990545419+02:00
+hash: 30a46a46887cc6b0bd152986d6158a29bfbbe011e4f0c6575c0d4ef5ff73c768
+updated: 2018-01-03T16:21:20.794766383+09:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
@@ -7,11 +7,11 @@ imports:
 - name: github.com/gorilla/websocket
   version: ea4d1f681babbce9545c9c5f3d5194a789c89f5b
 - name: github.com/mattermost/platform
-  version: 8966452d1183e94fecc373b9d08c65a0573cbbc6
+  version: 03f5c939deb4a6ab2fd01639b5570799e4118bab
   subpackages:
   - model
 - name: github.com/nicksnyder/go-i18n
-  version: ca33e78c8a430e2df435b02f63a3944fa8e9ea11
+  version: 0dc1626d56435e9d605a29875701721c54bc9bbd
   subpackages:
   - i18n
   - i18n/bundle

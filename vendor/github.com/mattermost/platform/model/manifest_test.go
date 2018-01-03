@@ -1,3 +1,6 @@
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 package model
 
 import (
@@ -64,6 +67,27 @@ func TestManifestUnmarshal(t *testing.T) {
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
 		},
+		SettingsSchema: &PluginSettingsSchema{
+			Header: "theheadertext",
+			Footer: "thefootertext",
+			Settings: []*PluginSetting{
+				&PluginSetting{
+					Key:                "thesetting",
+					DisplayName:        "thedisplayname",
+					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
+					HelpText:           "thehelptext",
+					RegenerateHelpText: "theregeneratehelptext",
+					Placeholder:        "theplaceholder",
+					Options: []*PluginOption{
+						&PluginOption{
+							DisplayName: "theoptiondisplayname",
+							Value:       "thevalue",
+						},
+					},
+					Default: "thedefault",
+				},
+			},
+		},
 	}
 
 	var yamlResult Manifest
@@ -73,6 +97,20 @@ backend:
     executable: theexecutable
 webapp:
     bundle_path: thebundlepath
+settings_schema:
+    header: theheadertext
+    footer: thefootertext
+    settings:
+        - key: thesetting
+          display_name: thedisplayname
+          type: dropdown
+          help_text: thehelptext
+          regenerate_help_text: theregeneratehelptext
+          placeholder: theplaceholder
+          options:
+              - display_name: theoptiondisplayname
+                value: thevalue
+          default: thedefault
 `), &yamlResult))
 	assert.Equal(t, expected, yamlResult)
 
@@ -84,7 +122,28 @@ webapp:
 	},
 	"webapp": {
 		"bundle_path": "thebundlepath"
-	}
+	},
+    "settings_schema": {
+        "header": "theheadertext",
+        "footer": "thefootertext",
+        "settings": [
+			{
+				"key": "thesetting",
+				"display_name": "thedisplayname",
+				"type": "dropdown",
+				"help_text": "thehelptext",
+				"regenerate_help_text": "theregeneratehelptext",
+				"placeholder": "theplaceholder",
+				"options": [
+					{
+						"display_name": "theoptiondisplayname",
+						"value": "thevalue"
+					}
+				],
+				"default": "thedefault"
+			}
+		]
+    }
 	}`), &jsonResult))
 	assert.Equal(t, expected, jsonResult)
 }
@@ -114,6 +173,27 @@ func TestManifestJson(t *testing.T) {
 		},
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
+		},
+		SettingsSchema: &PluginSettingsSchema{
+			Header: "theheadertext",
+			Footer: "thefootertext",
+			Settings: []*PluginSetting{
+				&PluginSetting{
+					Key:                "thesetting",
+					DisplayName:        "thedisplayname",
+					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
+					HelpText:           "thehelptext",
+					RegenerateHelpText: "theregeneratehelptext",
+					Placeholder:        "theplaceholder",
+					Options: []*PluginOption{
+						&PluginOption{
+							DisplayName: "theoptiondisplayname",
+							Value:       "thevalue",
+						},
+					},
+					Default: "thedefault",
+				},
+			},
 		},
 	}
 
@@ -159,6 +239,27 @@ func TestManifestClientManifest(t *testing.T) {
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
 		},
+		SettingsSchema: &PluginSettingsSchema{
+			Header: "theheadertext",
+			Footer: "thefootertext",
+			Settings: []*PluginSetting{
+				&PluginSetting{
+					Key:                "thesetting",
+					DisplayName:        "thedisplayname",
+					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
+					HelpText:           "thehelptext",
+					RegenerateHelpText: "theregeneratehelptext",
+					Placeholder:        "theplaceholder",
+					Options: []*PluginOption{
+						&PluginOption{
+							DisplayName: "theoptiondisplayname",
+							Value:       "thevalue",
+						},
+					},
+					Default: "thedefault",
+				},
+			},
+		},
 	}
 
 	sanitized := manifest.ClientManifest()
@@ -166,6 +267,7 @@ func TestManifestClientManifest(t *testing.T) {
 	assert.NotEmpty(t, sanitized.Id)
 	assert.NotEmpty(t, sanitized.Version)
 	assert.NotEmpty(t, sanitized.Webapp)
+	assert.NotEmpty(t, sanitized.SettingsSchema)
 	assert.Empty(t, sanitized.Name)
 	assert.Empty(t, sanitized.Description)
 	assert.Empty(t, sanitized.Backend)
@@ -176,4 +278,5 @@ func TestManifestClientManifest(t *testing.T) {
 	assert.NotEmpty(t, manifest.Name)
 	assert.NotEmpty(t, manifest.Description)
 	assert.NotEmpty(t, manifest.Backend)
+	assert.NotEmpty(t, manifest.SettingsSchema)
 }

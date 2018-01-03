@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPostJson(t *testing.T) {
@@ -121,5 +123,53 @@ func TestPostIsSystemMessage(t *testing.T) {
 	post2.PreSave()
 	if !post2.IsSystemMessage() {
 		t.Fatalf("TestPostIsSystemMessage failed, expected post2.IsSystemMessage() to be true")
+	}
+}
+
+func TestPostChannelMentions(t *testing.T) {
+	post := Post{Message: "~a ~b ~b ~c/~d."}
+	assert.Equal(t, []string{"a", "b", "c", "d"}, post.ChannelMentions())
+}
+
+func TestPostSanitizeProps(t *testing.T) {
+	post1 := &Post{
+		Message: "test",
+	}
+
+	post1.SanitizeProps()
+
+	if post1.Props[PROPS_ADD_CHANNEL_MEMBER] != nil {
+		t.Fatal("should be nil")
+	}
+
+	post2 := &Post{
+		Message: "test",
+		Props: StringInterface{
+			PROPS_ADD_CHANNEL_MEMBER: "test",
+		},
+	}
+
+	post2.SanitizeProps()
+
+	if post2.Props[PROPS_ADD_CHANNEL_MEMBER] != nil {
+		t.Fatal("should be nil")
+	}
+
+	post3 := &Post{
+		Message: "test",
+		Props: StringInterface{
+			PROPS_ADD_CHANNEL_MEMBER: "no good",
+			"attachments":            "good",
+		},
+	}
+
+	post3.SanitizeProps()
+
+	if post3.Props[PROPS_ADD_CHANNEL_MEMBER] != nil {
+		t.Fatal("should be nil")
+	}
+
+	if post3.Props["attachments"] == nil {
+		t.Fatal("should not be nil")
 	}
 }

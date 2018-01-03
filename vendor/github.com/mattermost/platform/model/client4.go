@@ -44,7 +44,7 @@ func BuildErrorResponse(r *http.Response, err *AppError) *Response {
 		header = r.Header
 	} else {
 		statusCode = 0
-		header = make(http.Header, 0)
+		header = make(http.Header)
 	}
 
 	return &Response{
@@ -901,6 +901,16 @@ func (c *Client4) RevokeSession(userId, sessionId string) (bool, *Response) {
 	}
 }
 
+// RevokeAllSessions revokes all sessions for the provided user id string.
+func (c *Client4) RevokeAllSessions(userId string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetUserRoute(userId)+"/sessions/revoke/all", ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // AttachDeviceId attaches a mobile device ID to the current session.
 func (c *Client4) AttachDeviceId(deviceId string) (bool, *Response) {
 	requestBody := map[string]string{"device_id": deviceId}
@@ -1048,6 +1058,32 @@ func (c *Client4) GetUserAccessTokensForUser(userId string, page, perPage int) (
 func (c *Client4) RevokeUserAccessToken(tokenId string) (bool, *Response) {
 	requestBody := map[string]string{"token_id": tokenId}
 	if r, err := c.DoApiPost(c.GetUsersRoute()+"/tokens/revoke", MapToJson(requestBody)); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// DisableUserAccessToken will disable a user access token by id. Must have the
+// 'revoke_user_access_token' permission and if disabling for another user, must have the
+// 'edit_other_users' permission.
+func (c *Client4) DisableUserAccessToken(tokenId string) (bool, *Response) {
+	requestBody := map[string]string{"token_id": tokenId}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/tokens/disable", MapToJson(requestBody)); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// EnableUserAccessToken will enable a user access token by id. Must have the
+// 'create_user_access_token' permission and if enabling for another user, must have the
+// 'edit_other_users' permission.
+func (c *Client4) EnableUserAccessToken(tokenId string) (bool, *Response) {
+	requestBody := map[string]string{"token_id": tokenId}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/tokens/enable", MapToJson(requestBody)); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1619,6 +1655,17 @@ func (c *Client4) UpdateChannelNotifyProps(channelId, userId string, props map[s
 // AddChannelMember adds user to channel and return a channel member.
 func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *Response) {
 	requestBody := map[string]string{"user_id": userId}
+	if r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelMemberFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AddChannelMemberWithRootId adds user to channel and return a channel member. Post add to channel message has the postRootId.
+func (c *Client4) AddChannelMemberWithRootId(channelId, userId, postRootId string) (*ChannelMember, *Response) {
+	requestBody := map[string]string{"user_id": userId, "post_root_id": postRootId}
 	if r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
@@ -2806,10 +2853,26 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 	}
 }
 
-// ExecuteCommand executes a given command.
+// ExecuteCommand executes a given slash command.
 func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *Response) {
 	commandArgs := &CommandArgs{
 		ChannelId: channelId,
+		Command:   command,
+	}
+	if r, err := c.DoApiPost(c.GetCommandsRoute()+"/execute", commandArgs.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CommandResponseFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// ExecuteCommand executes a given slash command against the specified team
+// Use this when executing slash commands in a DM/GM, since the team id cannot be inferred in that case
+func (c *Client4) ExecuteCommandWithTeam(channelId, teamId, command string) (*CommandResponse, *Response) {
+	commandArgs := &CommandArgs{
+		ChannelId: channelId,
+		TeamId:    teamId,
 		Command:   command,
 	}
 	if r, err := c.DoApiPost(c.GetCommandsRoute()+"/execute", commandArgs.ToJson()); err != nil {
@@ -3098,12 +3161,12 @@ func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response) {
 
 // GetPlugins will return a list of plugin manifests for currently active plugins.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
-func (c *Client4) GetPlugins() ([]*Manifest, *Response) {
+func (c *Client4) GetPlugins() (*PluginsResponse, *Response) {
 	if r, err := c.DoApiGet(c.GetPluginsRoute(), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return ManifestListFromJson(r.Body), BuildResponse(r)
+		return PluginsResponseFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -3126,5 +3189,27 @@ func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response) {
 	} else {
 		defer closeBody(r)
 		return ManifestListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// ActivatePlugin will activate an plugin installed.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) ActivatePlugin(id string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/activate", ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// DeactivatePlugin will deactivate an active plugin.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) DeactivatePlugin(id string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/deactivate", ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }

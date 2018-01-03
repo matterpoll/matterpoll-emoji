@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
@@ -19,8 +20,10 @@ const (
 	POST_JOIN_LEAVE            = "system_join_leave" // Deprecated, use POST_JOIN_CHANNEL or POST_LEAVE_CHANNEL instead
 	POST_JOIN_CHANNEL          = "system_join_channel"
 	POST_LEAVE_CHANNEL         = "system_leave_channel"
+	POST_LEAVE_TEAM            = "system_leave_team"
 	POST_ADD_REMOVE            = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
 	POST_ADD_TO_CHANNEL        = "system_add_to_channel"
+	POST_ADD_TO_TEAM           = "system_add_to_team"
 	POST_REMOVE_FROM_CHANNEL   = "system_remove_from_channel"
 	POST_HEADER_CHANGE         = "system_header_change"
 	POST_DISPLAYNAME_CHANGE    = "system_displayname_change"
@@ -32,7 +35,9 @@ const (
 	POST_HASHTAGS_MAX_RUNES    = 1000
 	POST_MESSAGE_MAX_RUNES     = 4000
 	POST_PROPS_MAX_RUNES       = 8000
+	POST_PROPS_MAX_USER_RUNES  = POST_PROPS_MAX_RUNES - 400 // Leave some room for system / pre-save modifications
 	POST_CUSTOM_TYPE_PREFIX    = "custom_"
+	PROPS_ADD_CHANNEL_MEMBER   = "add_channel_member"
 )
 
 type Post struct {
@@ -165,8 +170,8 @@ func (o *Post) IsValid() *AppError {
 	}
 
 	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE || o.Type == POST_ADD_REMOVE ||
-		o.Type == POST_JOIN_CHANNEL || o.Type == POST_LEAVE_CHANNEL ||
-		o.Type == POST_REMOVE_FROM_CHANNEL || o.Type == POST_ADD_TO_CHANNEL ||
+		o.Type == POST_JOIN_CHANNEL || o.Type == POST_LEAVE_CHANNEL || o.Type == POST_LEAVE_TEAM ||
+		o.Type == POST_REMOVE_FROM_CHANNEL || o.Type == POST_ADD_TO_CHANNEL || o.Type == POST_ADD_TO_TEAM ||
 		o.Type == POST_SLACK_ATTACHMENT || o.Type == POST_HEADER_CHANGE || o.Type == POST_PURPOSE_CHANGE ||
 		o.Type == POST_DISPLAYNAME_CHANGE || o.Type == POST_CHANNEL_DELETED ||
 		strings.HasPrefix(o.Type, POST_CUSTOM_TYPE_PREFIX)) {
@@ -186,6 +191,18 @@ func (o *Post) IsValid() *AppError {
 	}
 
 	return nil
+}
+
+func (o *Post) SanitizeProps() {
+	membersToSanitize := []string{
+		PROPS_ADD_CHANNEL_MEMBER,
+	}
+
+	for _, member := range membersToSanitize {
+		if _, ok := o.Props[member]; ok {
+			delete(o.Props, member)
+		}
+	}
 }
 
 func (o *Post) PreSave() {
@@ -276,6 +293,22 @@ func PostPatchFromJson(data io.Reader) *PostPatch {
 	}
 
 	return &post
+}
+
+var channelMentionRegexp = regexp.MustCompile(`\B~[a-zA-Z0-9\-_]+`)
+
+func (o *Post) ChannelMentions() (names []string) {
+	if strings.Contains(o.Message, "~") {
+		alreadyMentioned := make(map[string]bool)
+		for _, match := range channelMentionRegexp.FindAllString(o.Message, -1) {
+			name := match[1:]
+			if !alreadyMentioned[name] {
+				names = append(names, name)
+				alreadyMentioned[name] = true
+			}
+		}
+	}
+	return
 }
 
 func (r *PostActionIntegrationRequest) ToJson() string {

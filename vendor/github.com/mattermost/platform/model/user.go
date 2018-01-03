@@ -320,8 +320,7 @@ func (u *User) Etag(showFullName, showEmail bool) string {
 // Remove any private data from the user object
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
-	u.AuthData = new(string)
-	*u.AuthData = ""
+	u.AuthData = NewString("")
 	u.MfaSecret = ""
 
 	if len(options) != 0 && !options["email"] {
@@ -341,12 +340,10 @@ func (u *User) Sanitize(options map[string]bool) {
 
 func (u *User) ClearNonProfileFields() {
 	u.Password = ""
-	u.AuthData = new(string)
-	*u.AuthData = ""
+	u.AuthData = NewString("")
 	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
-	u.Props = StringMap{}
 	u.NotifyProps = StringMap{}
 	u.LastPasswordUpdate = 0
 	u.FailedAttempts = 0
@@ -437,7 +434,7 @@ func IsValidUserRoles(userRoles string) bool {
 }
 
 func isValidRole(roleId string) bool {
-	_, ok := BuiltInRoles[roleId]
+	_, ok := DefaultRoles[roleId]
 	return ok
 }
 
