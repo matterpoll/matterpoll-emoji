@@ -1,5 +1,5 @@
 NAME	 := matterpoll-emoji
-VERSION  := v0.1.0
+VERSION  := v0.1.1
 REVISION := $(shell git rev-parse --short HEAD)
 
 LDFLAGS := -ldflags="-s -w -X \"main.Version=$(VERSION)\" -X \"main.Revision=$(REVISION)\" -extldflags \"-static\""
