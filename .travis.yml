@@ -4,11 +4,7 @@ go:
   - 1.8
   - 1.9
 
-before_install:
-  - mkdir -p $GOPATH/bin
-
-
-before_script:
+install:
   - make install-tools
 
 script:

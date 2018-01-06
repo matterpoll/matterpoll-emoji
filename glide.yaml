@@ -5,7 +5,7 @@ import:
   subpackages:
   - model
 - package: github.com/stretchr/testify
-  version: ~1.1
+  version: ~1.2
   subpackages:
    - assert
    - require

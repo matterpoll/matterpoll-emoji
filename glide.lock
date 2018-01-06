@@ -1,5 +1,5 @@
-hash: 8ea3a2e7c69d00d2eb89f5a31b0ec5b2a186fbd82bf803ae913c85e3b26086a6
-updated: 2018-01-03T17:15:36.659254466+09:00
+hash: 3a0087d811071c305311295212f58e68af10e25891487ec40f5f51f42b3fe350
+updated: 2018-01-06T15:31:07.258050637+09:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
@@ -22,7 +22,7 @@ imports:
 - name: github.com/pelletier/go-toml
   version: 69d355db5304c0f7f809a2edc054553e7142f016
 - name: github.com/stretchr/testify
-  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  version: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
   subpackages:
   - assert
   - require
