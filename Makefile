@@ -10,7 +10,7 @@ DIST_DIRS := find * -type d -exec
 all: test
 
 run:
-	go run main.go
+	go run cmd/matterpoll-emoji/main.go
 
 clean:
 	rm -rf bin/*
@@ -62,10 +62,10 @@ check-style:
 
 cross-build:
 	for os in darwin linux windows; do \
-		GOOS=$$os GOARCH=386 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-i686/$(NAME); \
+		GOOS=$$os GOARCH=386 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-i686/$(NAME) cmd/matterpoll-emoji/main.go; \
 	done
 	for os in darwin linux windows; do \
-		GOOS=$$os GOARCH=amd64 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-x86_64/$(NAME); \
+		GOOS=$$os GOARCH=amd64 CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-x86_64/$(NAME) cmd/matterpoll-emoji/main.go; \
 	done
 
 dist: cross-build
