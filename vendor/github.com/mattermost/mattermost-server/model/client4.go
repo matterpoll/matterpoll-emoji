@@ -766,6 +766,16 @@ func (c *Client4) PatchUser(userId string, patch *UserPatch) (*User, *Response) 
 	}
 }
 
+// UpdateUserAuth updates a user AuthData (uthData, authService and password) in the system.
+func (c *Client4) UpdateUserAuth(userId string, userAuth *UserAuth) (*UserAuth, *Response) {
+	if r, err := c.DoApiPut(c.GetUserRoute(userId)+"/auth", userAuth.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserAuthFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // UpdateUserMfa activates multi-factor authentication for a user if activate
 // is true and a valid code is provided. If activate is false, then code is not
 // required and multi-factor authentication is disabled for the user.
@@ -2649,7 +2659,7 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 
 // GetLogs page of logs as a string array.
 func (c *Client4) GetLogs(page, perPage int) ([]string, *Response) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	query := fmt.Sprintf("?page=%v&logs_per_page=%v", page, perPage)
 	if r, err := c.DoApiGet("/logs"+query, ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {

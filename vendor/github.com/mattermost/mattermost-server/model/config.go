@@ -212,6 +212,7 @@ type ServiceSettings struct {
 	ClusterLogTimeoutMilliseconds            *int
 	CloseUnusedDirectMessages                *bool
 	EnablePreviewFeatures                    *bool
+	EnableTutorial                           *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -329,6 +330,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.CloseUnusedDirectMessages == nil {
 		s.CloseUnusedDirectMessages = NewBool(false)
+	}
+
+	if s.EnableTutorial == nil {
+		s.EnableTutorial = NewBool(true)
 	}
 
 	if s.SessionLengthWebInDays == nil {
@@ -683,6 +688,9 @@ type EmailSettings struct {
 	EmailBatchingInterval             *int
 	SkipServerCertificateVerification *bool
 	EmailNotificationContentsType     *string
+	LoginButtonColor                  *string
+	LoginButtonBorderColor            *string
+	LoginButtonTextColor              *string
 }
 
 func (s *EmailSettings) SetDefaults() {
@@ -749,6 +757,18 @@ func (s *EmailSettings) SetDefaults() {
 
 	if s.EmailNotificationContentsType == nil {
 		s.EmailNotificationContentsType = NewString(EMAIL_NOTIFICATION_CONTENTS_FULL)
+	}
+
+	if s.LoginButtonColor == nil {
+		s.LoginButtonColor = NewString("#0000")
+	}
+
+	if s.LoginButtonBorderColor == nil {
+		s.LoginButtonBorderColor = NewString("#2389D7")
+	}
+
+	if s.LoginButtonTextColor == nil {
+		s.LoginButtonTextColor = NewString("#2389D7")
 	}
 }
 
@@ -920,6 +940,7 @@ type TeamSettings struct {
 	EnableConfirmNotificationsToChannel *bool
 	TeammateNameDisplay                 *string
 	ExperimentalTownSquareIsReadOnly    *bool
+	ExperimentalPrimaryTeam             *string
 }
 
 func (s *TeamSettings) SetDefaults() {
@@ -1015,6 +1036,10 @@ func (s *TeamSettings) SetDefaults() {
 	if s.ExperimentalTownSquareIsReadOnly == nil {
 		s.ExperimentalTownSquareIsReadOnly = NewBool(false)
 	}
+
+	if s.ExperimentalPrimaryTeam == nil {
+		s.ExperimentalPrimaryTeam = NewString("")
+	}
 }
 
 type ClientRequirements struct {
@@ -1059,6 +1084,10 @@ type LdapSettings struct {
 
 	// Customization
 	LoginFieldName *string
+
+	LoginButtonColor       *string
+	LoginButtonBorderColor *string
+	LoginButtonTextColor   *string
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -1146,6 +1175,18 @@ func (s *LdapSettings) SetDefaults() {
 	if s.LoginFieldName == nil {
 		s.LoginFieldName = NewString(LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME)
 	}
+
+	if s.LoginButtonColor == nil {
+		s.LoginButtonColor = NewString("#0000")
+	}
+
+	if s.LoginButtonBorderColor == nil {
+		s.LoginButtonBorderColor = NewString("#2389D7")
+	}
+
+	if s.LoginButtonTextColor == nil {
+		s.LoginButtonTextColor = NewString("#2389D7")
+	}
 }
 
 type ComplianceSettings struct {
@@ -1214,6 +1255,10 @@ type SamlSettings struct {
 	PositionAttribute  *string
 
 	LoginButtonText *string
+
+	LoginButtonColor       *string
+	LoginButtonBorderColor *string
+	LoginButtonTextColor   *string
 }
 
 func (s *SamlSettings) SetDefaults() {
@@ -1287,6 +1332,18 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.LocaleAttribute == nil {
 		s.LocaleAttribute = NewString(SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE)
+	}
+
+	if s.LoginButtonColor == nil {
+		s.LoginButtonColor = NewString("#34a28b")
+	}
+
+	if s.LoginButtonBorderColor == nil {
+		s.LoginButtonBorderColor = NewString("#2389D7")
+	}
+
+	if s.LoginButtonTextColor == nil {
+		s.LoginButtonTextColor = NewString("#ffffff")
 	}
 }
 
