@@ -25,6 +25,8 @@ type IncomingWebhook struct {
 	TeamId      string `json:"team_id"`
 	DisplayName string `json:"display_name"`
 	Description string `json:"description"`
+	Username    string `json:"username"`
+	IconURL     string `json:"icon_url"`
 }
 
 type IncomingWebhookRequest struct {
@@ -110,6 +112,14 @@ func (o *IncomingWebhook) IsValid() *AppError {
 
 	if len(o.Description) > 128 {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.description.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.Username) > 64 {
+		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.username.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.IconURL) > 1024 {
+		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.icon_url.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

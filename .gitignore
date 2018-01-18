@@ -1,6 +1,3 @@
-vendor/github.com/mattermost/mattermost-server/*
-!vendor/github.com/mattermost/mattermost-server/model/
-dist/
-config.json
-coverage.txt
-/matterpoll-emoji
+/dist
+/config.json
+/coverage.txt

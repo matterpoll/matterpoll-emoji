@@ -5,7 +5,7 @@ REVISION := $(shell git rev-parse --short HEAD)
 LDFLAGS := -ldflags="-s -w -X \"main.Version=$(VERSION)\" -X \"main.Revision=$(REVISION)\" -extldflags \"-static\""
 DIST_DIRS := find * -type d -exec
 
-.PHONY: run clean test coverage install-tools check-style cross-build dist
+.PHONY: run clean test coverage install-tools update-deps check-style cross-build dist
 
 all: test
 
@@ -26,6 +26,11 @@ coverage:
 
 install-tools:
 	go get -u github.com/golang/lint/golint
+
+update-deps:
+	dep ensure
+	dep ensure -update
+	dep prune
 
 check-style:
 	$(eval DIRECTORIES_NOVENDOR_FULLPATH := $(shell go list ./... | grep -v /vendor/))
