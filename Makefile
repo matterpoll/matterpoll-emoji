@@ -30,7 +30,6 @@ install-tools:
 update-deps:
 	dep ensure
 	dep ensure -update
-	dep prune
 
 check-style:
 	$(eval DIRECTORIES_NOVENDOR_FULLPATH := $(shell go list ./... | grep -v /vendor/))
