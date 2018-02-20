@@ -60,7 +60,7 @@ Run the server
 
 Clone this repository and checkout the latest release. You can just use the master branch but it can be unstable.
 ```
-go get -u https://github.com/kaakaa/matterpoll-emoji
+go get -u github.com/kaakaa/matterpoll-emoji
 cd $GOPATH/src/github.com/kaakaa/matterpoll-emoji
 git checkout $(git describe --tags)
 ```
