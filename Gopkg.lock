@@ -21,9 +21,12 @@
 
 [[projects]]
   name = "github.com/mattermost/mattermost-server"
-  packages = ["model"]
-  revision = "58defb7424773c75718f0173f4ace702cffa4f0e"
-  version = "v4.6.0"
+  packages = [
+    "model",
+    "utils/markdown"
+  ]
+  revision = "416c7523c3097af6759b7c40075df51d44624672"
+  version = "v4.9.2"
 
 [[projects]]
   name = "github.com/nicksnyder/go-i18n"
@@ -60,8 +63,8 @@
     "assert",
     "require"
   ]
-  revision = "b91bfb9ebec76498946beb6af7c0230c7cc7ba6c"
-  version = "v1.2.0"
+  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
+  version = "v1.2.1"
 
 [[projects]]
   branch = "master"
@@ -70,17 +73,17 @@
     "bcrypt",
     "blowfish"
   ]
-  revision = "3d37316aaa6bd9929127ac9a527abf408178ea7b"
+  revision = "4ec37c66abab2c7e02ae775328b2ff001c3f025a"
 
 [[projects]]
-  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5e5db4427da1bf34d1db289afb0349c078ee4b89a2f4af2a869c99a74004ff2c"
+  inputs-digest = "8fc1b2d2843841ca474201bdfabc14967148a9c2ea3d98e2b2bc1c0db44c5a29"
   solver-name = "gps-cdcl"
   solver-version = 1
