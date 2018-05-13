@@ -21,6 +21,15 @@ func NewPostList() *PostList {
 	}
 }
 
+func (o *PostList) WithRewrittenImageURLs(f func(string) string) *PostList {
+	copy := *o
+	copy.Posts = make(map[string]*Post)
+	for id, post := range o.Posts {
+		copy.Posts[id] = post.WithRewrittenImageURLs(f)
+	}
+	return &copy
+}
+
 func (o *PostList) StripActionIntegrations() {
 	posts := o.Posts
 	o.Posts = make(map[string]*Post)
@@ -123,12 +132,7 @@ func (o *PostList) IsChannelId(channelId string) bool {
 }
 
 func PostListFromJson(data io.Reader) *PostList {
-	decoder := json.NewDecoder(data)
-	var o PostList
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *PostList
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

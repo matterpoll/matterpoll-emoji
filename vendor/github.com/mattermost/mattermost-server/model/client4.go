@@ -82,6 +82,10 @@ func (c *Client4) GetUserRoute(userId string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/%v", userId)
 }
 
+func (c *Client4) GetUserAccessTokensRoute() string {
+	return fmt.Sprintf(c.GetUsersRoute() + "/tokens")
+}
+
 func (c *Client4) GetUserAccessTokenRoute(tokenId string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/tokens/%v", tokenId)
 }
@@ -194,6 +198,10 @@ func (c *Client4) GetTestEmailRoute() string {
 	return fmt.Sprintf("/email/test")
 }
 
+func (c *Client4) GetTestS3Route() string {
+	return fmt.Sprintf("/file/s3_test")
+}
+
 func (c *Client4) GetDatabaseRoute() string {
 	return fmt.Sprintf("/database")
 }
@@ -278,6 +286,10 @@ func (c *Client4) GetEmojiRoute(emojiId string) string {
 	return fmt.Sprintf(c.GetEmojisRoute()+"/%v", emojiId)
 }
 
+func (c *Client4) GetEmojiByNameRoute(name string) string {
+	return fmt.Sprintf(c.GetEmojisRoute()+"/name/%v", name)
+}
+
 func (c *Client4) GetReactionsRoute() string {
 	return fmt.Sprintf("/reactions")
 }
@@ -298,8 +310,16 @@ func (c *Client4) GetJobsRoute() string {
 	return fmt.Sprintf("/jobs")
 }
 
+func (c *Client4) GetRolesRoute() string {
+	return fmt.Sprintf("/roles")
+}
+
 func (c *Client4) GetAnalyticsRoute() string {
 	return fmt.Sprintf("/analytics")
+}
+
+func (c *Client4) GetTimezonesRoute() string {
+	return fmt.Sprintf(c.GetSystemRoute() + "/timezones")
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
@@ -683,7 +703,7 @@ func (c *Client4) GetUsersNotInTeam(teamId string, page int, perPage int, etag s
 	}
 }
 
-// GetUsersInChannel returns a page of users on a team. Page counting starts at 0.
+// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
 func (c *Client4) GetUsersInChannel(channelId string, page int, perPage int, etag string) ([]*User, *Response) {
 	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v", channelId, page, perPage)
 	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
@@ -694,7 +714,18 @@ func (c *Client4) GetUsersInChannel(channelId string, page int, perPage int, eta
 	}
 }
 
-// GetUsersNotInChannel returns a page of users on a team. Page counting starts at 0.
+// GetUsersInChannelStatus returns a page of users in a channel. Page counting starts at 0. Sorted by Status
+func (c *Client4) GetUsersInChannelByStatus(channelId string, page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v&sort=status", channelId, page, perPage)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUsersNotInChannel returns a page of users not in a channel. Page counting starts at 0.
 func (c *Client4) GetUsersNotInChannel(teamId, channelId string, page int, perPage int, etag string) ([]*User, *Response) {
 	query := fmt.Sprintf("?in_team=%v&not_in_channel=%v&page=%v&per_page=%v", teamId, channelId, page, perPage)
 	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
@@ -1035,10 +1066,23 @@ func (c *Client4) CreateUserAccessToken(userId, description string) (*UserAccess
 	}
 }
 
-// GetUserAccessToken will get a user access token's id, description and the user_id
-// of the user it is for. The actual token will not be returned. Must have the
-// 'read_user_access_token' permission and if getting for another user, must have the
-// 'edit_other_users' permission.
+// GetUserAccessTokens will get a page of access tokens' id, description, is_active
+// and the user_id in the system. The actual token will not be returned. Must have
+// the 'manage_system' permission.
+func (c *Client4) GetUserAccessTokens(page int, perPage int) ([]*UserAccessToken, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetUserAccessTokensRoute()+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserAccessTokenListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUserAccessToken will get a user access tokens' id, description, is_active
+// and the user_id of the user it is for. The actual token will not be returned.
+// Must have the 'read_user_access_token' permission and if getting for another
+// user, must have the 'edit_other_users' permission.
 func (c *Client4) GetUserAccessToken(tokenId string) (*UserAccessToken, *Response) {
 	if r, err := c.DoApiGet(c.GetUserAccessTokenRoute(tokenId), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -1072,6 +1116,16 @@ func (c *Client4) RevokeUserAccessToken(tokenId string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// SearchUserAccessTokens returns user access tokens matching the provided search term.
+func (c *Client4) SearchUserAccessTokens(search *UserAccessTokenSearch) ([]*UserAccessToken, *Response) {
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/tokens/search", search.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserAccessTokenListFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -1694,11 +1748,22 @@ func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Respon
 	}
 }
 
+// AutocompleteChannelsForTeam will return an ordered list of channels autocomplete suggestions
+func (c *Client4) AutocompleteChannelsForTeam(teamId, name string) (*ChannelList, *Response) {
+	query := fmt.Sprintf("?name=%v", name)
+	if r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+"/autocomplete"+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Post Section
 
 // CreatePost creates a post based on the provided post struct.
 func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
-	if r, err := c.DoApiPost(c.GetPostsRoute(), post.ToJson()); err != nil {
+	if r, err := c.DoApiPost(c.GetPostsRoute(), post.ToUnsanitizedJson()); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1708,7 +1773,7 @@ func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
 
 // UpdatePost updates a post based on the provided post struct.
 func (c *Client4) UpdatePost(postId string, post *Post) (*Post, *Response) {
-	if r, err := c.DoApiPut(c.GetPostRoute(postId), post.ToJson()); err != nil {
+	if r, err := c.DoApiPut(c.GetPostRoute(postId), post.ToUnsanitizedJson()); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1884,7 +1949,8 @@ func (c *Client4) DoPostAction(postId, actionId string) (bool, *Response) {
 
 // File Section
 
-// UploadFile will upload a file to a channel, to be later attached to a post.
+// UploadFile will upload a file to a channel using a multipart request, to be later attached to a post.
+// This method is functionally equivalent to Client4.UploadFileAsRequestBody.
 func (c *Client4) UploadFile(data []byte, channelId string, filename string) (*FileUploadResponse, *Response) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -1906,6 +1972,12 @@ func (c *Client4) UploadFile(data []byte, channelId string, filename string) (*F
 	}
 
 	return c.DoUploadFile(c.GetFilesRoute(), body.Bytes(), writer.FormDataContentType())
+}
+
+// UploadFileAsRequestBody will upload a file to a channel as the body of a request, to be later attached
+// to a post. This method is functionally equivalent to Client4.UploadFile.
+func (c *Client4) UploadFileAsRequestBody(data []byte, channelId string, filename string) (*FileUploadResponse, *Response) {
+	return c.DoUploadFile(c.GetFilesRoute()+fmt.Sprintf("?channel_id=%v&filename=%v", url.QueryEscape(channelId), url.QueryEscape(filename)), data, http.DetectContentType(data))
 }
 
 // GetFile gets the bytes for a file by id.
@@ -2045,8 +2117,18 @@ func (c *Client4) GetPing() (string, *Response) {
 }
 
 // TestEmail will attempt to connect to the configured SMTP server.
-func (c *Client4) TestEmail() (bool, *Response) {
-	if r, err := c.DoApiPost(c.GetTestEmailRoute(), ""); err != nil {
+func (c *Client4) TestEmail(config *Config) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetTestEmailRoute(), config.ToJson()); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// TestS3Connection will attempt to connect to the AWS S3.
+func (c *Client4) TestS3Connection(config *Config) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetTestS3Route(), config.ToJson()); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -2996,6 +3078,18 @@ func (c *Client4) GetEmojiList(page, perPage int) ([]*Emoji, *Response) {
 	}
 }
 
+// GetSortedEmojiList returns a page of custom emoji on the system sorted based on the sort
+// parameter, blank for no sorting and "name" to sort by emoji names.
+func (c *Client4) GetSortedEmojiList(page, perPage int, sort string) ([]*Emoji, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&sort=%v", page, perPage, sort)
+	if r, err := c.DoApiGet(c.GetEmojisRoute()+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return EmojiListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // DeleteEmoji delete an custom emoji on the provided emoji id string.
 func (c *Client4) DeleteEmoji(emojiId string) (bool, *Response) {
 	if r, err := c.DoApiDelete(c.GetEmojiRoute(emojiId)); err != nil {
@@ -3006,9 +3100,19 @@ func (c *Client4) DeleteEmoji(emojiId string) (bool, *Response) {
 	}
 }
 
-// GetEmoji returns a custom emoji in the system on the provided emoji id string.
+// GetEmoji returns a custom emoji based on the emojiId string.
 func (c *Client4) GetEmoji(emojiId string) (*Emoji, *Response) {
 	if r, err := c.DoApiGet(c.GetEmojiRoute(emojiId), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return EmojiFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetEmojiByName returns a custom emoji based on the name string.
+func (c *Client4) GetEmojiByName(name string) (*Emoji, *Response) {
+	if r, err := c.DoApiGet(c.GetEmojiByNameRoute(name), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -3028,6 +3132,27 @@ func (c *Client4) GetEmojiImage(emojiId string) ([]byte, *Response) {
 		} else {
 			return data, BuildResponse(r)
 		}
+	}
+}
+
+// SearchEmoji returns a list of emoji matching some search criteria.
+func (c *Client4) SearchEmoji(search *EmojiSearch) ([]*Emoji, *Response) {
+	if r, err := c.DoApiPost(c.GetEmojisRoute()+"/search", search.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return EmojiListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AutocompleteEmoji returns a list of emoji starting with or matching name.
+func (c *Client4) AutocompleteEmoji(name string, etag string) ([]*Emoji, *Response) {
+	query := fmt.Sprintf("?name=%v", name)
+	if r, err := c.DoApiGet(c.GetEmojisRoute()+"/autocomplete"+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return EmojiListFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -3060,6 +3185,18 @@ func (c *Client4) DeleteReaction(reaction *Reaction) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Timezone Section
+
+// GetSupportedTimezone returns a page of supported timezones on the system.
+func (c *Client4) GetSupportedTimezone() (SupportedTimezones, *Response) {
+	if r, err := c.DoApiGet(c.GetTimezonesRoute(), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return TimezonesFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -3127,6 +3264,48 @@ func (c *Client4) CancelJob(jobId string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Roles Section
+
+// GetRole gets a single role by ID.
+func (c *Client4) GetRole(id string) (*Role, *Response) {
+	if r, err := c.DoApiGet(c.GetRolesRoute()+fmt.Sprintf("/%v", id), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return RoleFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetRoleByName gets a single role by Name.
+func (c *Client4) GetRoleByName(name string) (*Role, *Response) {
+	if r, err := c.DoApiGet(c.GetRolesRoute()+fmt.Sprintf("/name/%v", name), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return RoleFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetRolesByNames returns a list of roles based on the provided role names.
+func (c *Client4) GetRolesByNames(roleNames []string) ([]*Role, *Response) {
+	if r, err := c.DoApiPost(c.GetRolesRoute()+"/names", ArrayToJson(roleNames)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return RoleListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// PatchRole partially updates a role in the system. Any missing fields are not updated.
+func (c *Client4) PatchRole(roleId string, patch *RolePatch) (*Role, *Response) {
+	if r, err := c.DoApiPut(c.GetRolesRoute()+fmt.Sprintf("/%v/patch", roleId), patch.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return RoleFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -3221,5 +3400,58 @@ func (c *Client4) DeactivatePlugin(id string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// SetTeamIcon sets team icon of the team
+func (c *Client4) SetTeamIcon(teamId string, data []byte) (bool, *Response) {
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("image", "teamIcon.png"); err != nil {
+		return false, &Response{Error: NewAppError("SetTeamIcon", "model.client.set_team_icon.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return false, &Response{Error: NewAppError("SetTeamIcon", "model.client.set_team_icon.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if err := writer.Close(); err != nil {
+		return false, &Response{Error: NewAppError("SetTeamIcon", "model.client.set_team_icon.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetTeamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
+		// set to http.StatusForbidden(403)
+		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetTeamRoute(teamId)+"/image", "model.client.connecting.app_error", nil, err.Error(), 403)}
+	} else {
+		defer closeBody(rp)
+
+		if rp.StatusCode >= 300 {
+			return false, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
+		} else {
+			return CheckStatusOK(rp), BuildResponse(rp)
+		}
+	}
+}
+
+// GetTeamIcon gets the team icon of the team
+func (c *Client4) GetTeamIcon(teamId, etag string) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamRoute(teamId)+"/image", etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+
+		if data, err := ioutil.ReadAll(r.Body); err != nil {
+			return nil, BuildErrorResponse(r, NewAppError("GetTeamIcon", "model.client.get_team_icon.app_error", nil, err.Error(), r.StatusCode))
+		} else {
+			return data, BuildResponse(r)
+		}
 	}
 }

@@ -35,10 +35,6 @@ const (
 	SERVICE_GOOGLE    = "google"
 	SERVICE_OFFICE365 = "office365"
 
-	WEBSERVER_MODE_REGULAR  = "regular"
-	WEBSERVER_MODE_GZIP     = "gzip"
-	WEBSERVER_MODE_DISABLED = "disabled"
-
 	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
 	GENERIC_NOTIFICATION            = "generic"
 	FULL_NOTIFICATION               = "full"
@@ -69,6 +65,10 @@ const (
 	ALLOW_EDIT_POST_NEVER      = "never"
 	ALLOW_EDIT_POST_TIME_LIMIT = "time_limit"
 
+	GROUP_UNREAD_CHANNELS_DISABLED    = "disabled"
+	GROUP_UNREAD_CHANNELS_DEFAULT_ON  = "default_on"
+	GROUP_UNREAD_CHANNELS_DEFAULT_OFF = "default_off"
+
 	EMAIL_BATCHING_BUFFER_SIZE = 256
 	EMAIL_BATCHING_INTERVAL    = 30
 
@@ -95,15 +95,12 @@ const (
 
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
-	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK      = "https://about.mattermost.com/default-terms/"
-	SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK        = "https://about.mattermost.com/default-privacy-policy/"
-	SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK                 = "https://about.mattermost.com/default-about/"
-	SUPPORT_SETTINGS_DEFAULT_HELP_LINK                  = "https://about.mattermost.com/default-help/"
-	SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK      = "https://about.mattermost.com/default-report-a-problem/"
-	SUPPORT_SETTINGS_DEFAULT_ADMINISTRATORS_GUIDE_LINK  = "https://about.mattermost.com/administrators-guide/"
-	SUPPORT_SETTINGS_DEFAULT_TROUBLESHOOTING_FORUM_LINK = "https://about.mattermost.com/troubleshooting-forum/"
-	SUPPORT_SETTINGS_DEFAULT_COMMERCIAL_SUPPORT_LINK    = "https://about.mattermost.com/commercial-support/"
-	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL              = "feedback@mattermost.com"
+	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK = "https://about.mattermost.com/default-terms/"
+	SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK   = "https://about.mattermost.com/default-privacy-policy/"
+	SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK            = "https://about.mattermost.com/default-about/"
+	SUPPORT_SETTINGS_DEFAULT_HELP_LINK             = "https://about.mattermost.com/default-help/"
+	SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK = "https://about.mattermost.com/default-report-a-problem/"
+	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL         = "feedback@mattermost.com"
 
 	LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
 	LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
@@ -154,70 +151,88 @@ const (
 
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
+
+	TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH = "timezones.json"
+
+	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
+	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
+	GLOBALRELAY_CUSTOMER_TYPE_A9       = "A9"
+	GLOBALRELAY_CUSTOMER_TYPE_A10      = "A10"
 )
 
 type ServiceSettings struct {
-	SiteURL                                  *string
-	LicenseFileLocation                      *string
-	ListenAddress                            *string
-	ConnectionSecurity                       *string
-	TLSCertFile                              *string
-	TLSKeyFile                               *string
-	UseLetsEncrypt                           *bool
-	LetsEncryptCertificateCacheFile          *string
-	Forward80To443                           *bool
-	ReadTimeout                              *int
-	WriteTimeout                             *int
-	MaximumLoginAttempts                     *int
-	GoroutineHealthThreshold                 *int
-	GoogleDeveloperKey                       string
-	EnableOAuthServiceProvider               bool
-	EnableIncomingWebhooks                   bool
-	EnableOutgoingWebhooks                   bool
-	EnableCommands                           *bool
-	EnableOnlyAdminIntegrations              *bool
-	EnablePostUsernameOverride               bool
-	EnablePostIconOverride                   bool
-	EnableAPIv3                              *bool
-	EnableLinkPreviews                       *bool
-	EnableTesting                            bool
-	EnableDeveloper                          *bool
-	EnableSecurityFixAlert                   *bool
-	EnableInsecureOutgoingConnections        *bool
-	AllowedUntrustedInternalConnections      *string
-	EnableMultifactorAuthentication          *bool
-	EnforceMultifactorAuthentication         *bool
-	EnableUserAccessTokens                   *bool
-	AllowCorsFrom                            *string
-	SessionLengthWebInDays                   *int
-	SessionLengthMobileInDays                *int
-	SessionLengthSSOInDays                   *int
-	SessionCacheInMinutes                    *int
-	SessionIdleTimeoutInMinutes              *int
-	WebsocketSecurePort                      *int
-	WebsocketPort                            *int
-	WebserverMode                            *string
-	EnableCustomEmoji                        *bool
-	EnableEmojiPicker                        *bool
-	RestrictCustomEmojiCreation              *string
-	RestrictPostDelete                       *string
-	AllowEditPost                            *string
-	PostEditTimeLimit                        *int
-	TimeBetweenUserTypingUpdatesMilliseconds *int64
-	EnablePostSearch                         *bool
-	EnableUserTypingMessages                 *bool
-	EnableChannelViewedMessages              *bool
-	EnableUserStatuses                       *bool
-	ExperimentalEnableAuthenticationTransfer *bool
-	ClusterLogTimeoutMilliseconds            *int
-	CloseUnusedDirectMessages                *bool
-	EnablePreviewFeatures                    *bool
-	EnableTutorial                           *bool
+	SiteURL                                           *string
+	WebsocketURL                                      *string
+	LicenseFileLocation                               *string
+	ListenAddress                                     *string
+	ConnectionSecurity                                *string
+	TLSCertFile                                       *string
+	TLSKeyFile                                        *string
+	UseLetsEncrypt                                    *bool
+	LetsEncryptCertificateCacheFile                   *string
+	Forward80To443                                    *bool
+	ReadTimeout                                       *int
+	WriteTimeout                                      *int
+	MaximumLoginAttempts                              *int
+	GoroutineHealthThreshold                          *int
+	GoogleDeveloperKey                                string
+	EnableOAuthServiceProvider                        bool
+	EnableIncomingWebhooks                            bool
+	EnableOutgoingWebhooks                            bool
+	EnableCommands                                    *bool
+	EnableOnlyAdminIntegrations                       *bool
+	EnablePostUsernameOverride                        bool
+	EnablePostIconOverride                            bool
+	EnableAPIv3                                       *bool
+	EnableLinkPreviews                                *bool
+	EnableTesting                                     bool
+	EnableDeveloper                                   *bool
+	EnableSecurityFixAlert                            *bool
+	EnableInsecureOutgoingConnections                 *bool
+	AllowedUntrustedInternalConnections               *string
+	EnableMultifactorAuthentication                   *bool
+	EnforceMultifactorAuthentication                  *bool
+	EnableUserAccessTokens                            *bool
+	AllowCorsFrom                                     *string
+	AllowCookiesForSubdomains                         *bool
+	SessionLengthWebInDays                            *int
+	SessionLengthMobileInDays                         *int
+	SessionLengthSSOInDays                            *int
+	SessionCacheInMinutes                             *int
+	SessionIdleTimeoutInMinutes                       *int
+	WebsocketSecurePort                               *int
+	WebsocketPort                                     *int
+	WebserverMode                                     *string
+	EnableCustomEmoji                                 *bool
+	EnableEmojiPicker                                 *bool
+	RestrictCustomEmojiCreation                       *string
+	RestrictPostDelete                                *string
+	AllowEditPost                                     *string
+	PostEditTimeLimit                                 *int
+	TimeBetweenUserTypingUpdatesMilliseconds          *int64
+	EnablePostSearch                                  *bool
+	EnableUserTypingMessages                          *bool
+	EnableChannelViewedMessages                       *bool
+	EnableUserStatuses                                *bool
+	ExperimentalEnableAuthenticationTransfer          *bool
+	ClusterLogTimeoutMilliseconds                     *int
+	CloseUnusedDirectMessages                         *bool
+	EnablePreviewFeatures                             *bool
+	EnableTutorial                                    *bool
+	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
+	ExperimentalGroupUnreadChannels                   *string
+	ImageProxyType                                    *string
+	ImageProxyURL                                     *string
+	ImageProxyOptions                                 *string
 }
 
 func (s *ServiceSettings) SetDefaults() {
 	if s.SiteURL == nil {
 		s.SiteURL = NewString(SERVICE_SETTINGS_DEFAULT_SITE_URL)
+	}
+
+	if s.WebsocketURL == nil {
+		s.WebsocketURL = NewString("")
 	}
 
 	if s.LicenseFileLocation == nil {
@@ -249,7 +264,7 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.AllowedUntrustedInternalConnections == nil {
-		s.AllowedUntrustedInternalConnections = new(string)
+		s.AllowedUntrustedInternalConnections = NewString("")
 	}
 
 	if s.EnableMultifactorAuthentication == nil {
@@ -376,6 +391,10 @@ func (s *ServiceSettings) SetDefaults() {
 		s.AllowCorsFrom = NewString(SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM)
 	}
 
+	if s.AllowCookiesForSubdomains == nil {
+		s.AllowCookiesForSubdomains = NewBool(false)
+	}
+
 	if s.WebserverMode == nil {
 		s.WebserverMode = NewString("gzip")
 	} else if *s.WebserverMode == "regular" {
@@ -407,11 +426,35 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.PostEditTimeLimit == nil {
-		s.PostEditTimeLimit = NewInt(300)
+		s.PostEditTimeLimit = NewInt(-1)
 	}
 
 	if s.EnablePreviewFeatures == nil {
 		s.EnablePreviewFeatures = NewBool(true)
+	}
+
+	if s.ExperimentalEnableDefaultChannelLeaveJoinMessages == nil {
+		s.ExperimentalEnableDefaultChannelLeaveJoinMessages = NewBool(true)
+	}
+
+	if s.ExperimentalGroupUnreadChannels == nil {
+		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DISABLED)
+	} else if *s.ExperimentalGroupUnreadChannels == "0" {
+		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DISABLED)
+	} else if *s.ExperimentalGroupUnreadChannels == "1" {
+		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DEFAULT_ON)
+	}
+
+	if s.ImageProxyType == nil {
+		s.ImageProxyType = NewString("")
+	}
+
+	if s.ImageProxyURL == nil {
+		s.ImageProxyURL = NewString("")
+	}
+
+	if s.ImageProxyOptions == nil {
+		s.ImageProxyOptions = NewString("")
 	}
 }
 
@@ -777,7 +820,8 @@ type RateLimitSettings struct {
 	PerSec           *int
 	MaxBurst         *int
 	MemoryStoreSize  *int
-	VaryByRemoteAddr bool
+	VaryByRemoteAddr *bool
+	VaryByUser       *bool
 	VaryByHeader     string
 }
 
@@ -796,6 +840,14 @@ func (s *RateLimitSettings) SetDefaults() {
 
 	if s.MemoryStoreSize == nil {
 		s.MemoryStoreSize = NewInt(10000)
+	}
+
+	if s.VaryByRemoteAddr == nil {
+		s.VaryByRemoteAddr = NewBool(true)
+	}
+
+	if s.VaryByUser == nil {
+		s.VaryByUser = NewBool(false)
 	}
 }
 
@@ -917,7 +969,7 @@ func (s *ThemeSettings) SetDefaults() {
 type TeamSettings struct {
 	SiteName                            string
 	MaxUsersPerTeam                     *int
-	EnableTeamCreation                  bool
+	EnableTeamCreation                  *bool
 	EnableUserCreation                  bool
 	EnableOpenServer                    *bool
 	RestrictCreationToDomains           string
@@ -1040,6 +1092,10 @@ func (s *TeamSettings) SetDefaults() {
 	if s.ExperimentalPrimaryTeam == nil {
 		s.ExperimentalPrimaryTeam = NewString("")
 	}
+
+	if s.EnableTeamCreation == nil {
+		s.EnableTeamCreation = NewBool(true)
+	}
 }
 
 type ClientRequirements struct {
@@ -1074,7 +1130,7 @@ type LdapSettings struct {
 	IdAttribute        *string
 	PositionAttribute  *string
 
-	// Syncronization
+	// Synchronization
 	SyncIntervalMinutes *int
 
 	// Advanced
@@ -1241,6 +1297,9 @@ type SamlSettings struct {
 	IdpDescriptorUrl            *string
 	AssertionConsumerServiceURL *string
 
+	ScopingIDPProviderId *string
+	ScopingIDPName       *string
+
 	IdpCertificateFile    *string
 	PublicCertificateFile *string
 	PrivateKeyFile        *string
@@ -1300,6 +1359,14 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.AssertionConsumerServiceURL == nil {
 		s.AssertionConsumerServiceURL = NewString("")
+	}
+
+	if s.ScopingIDPProviderId == nil {
+		s.ScopingIDPProviderId = NewString("")
+	}
+
+	if s.ScopingIDPName == nil {
+		s.ScopingIDPName = NewString("")
 	}
 
 	if s.LoginButtonText == nil || *s.LoginButtonText == "" {
@@ -1579,16 +1646,46 @@ func (s *PluginSettings) SetDefaults() {
 	}
 }
 
+type GlobalRelayMessageExportSettings struct {
+	CustomerType *string // must be either A9 or A10, dictates SMTP server url
+	SmtpUsername *string
+	SmtpPassword *string
+	EmailAddress *string // the address to send messages to
+}
+
+func (s *GlobalRelayMessageExportSettings) SetDefaults() {
+	if s.CustomerType == nil {
+		s.CustomerType = NewString(GLOBALRELAY_CUSTOMER_TYPE_A9)
+	}
+	if s.SmtpUsername == nil {
+		s.SmtpUsername = NewString("")
+	}
+	if s.SmtpPassword == nil {
+		s.SmtpPassword = NewString("")
+	}
+	if s.EmailAddress == nil {
+		s.EmailAddress = NewString("")
+	}
+}
+
 type MessageExportSettings struct {
 	EnableExport        *bool
+	ExportFormat        *string
 	DailyRunTime        *string
 	ExportFromTimestamp *int64
 	BatchSize           *int
+
+	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
+	GlobalRelaySettings *GlobalRelayMessageExportSettings
 }
 
 func (s *MessageExportSettings) SetDefaults() {
 	if s.EnableExport == nil {
 		s.EnableExport = NewBool(false)
+	}
+
+	if s.ExportFormat == nil {
+		s.ExportFormat = NewString(COMPLIANCE_EXPORT_TYPE_ACTIANCE)
 	}
 
 	if s.DailyRunTime == nil {
@@ -1609,6 +1706,31 @@ func (s *MessageExportSettings) SetDefaults() {
 
 	if s.BatchSize == nil {
 		s.BatchSize = NewInt(10000)
+	}
+
+	if s.GlobalRelaySettings == nil {
+		s.GlobalRelaySettings = &GlobalRelayMessageExportSettings{}
+		s.GlobalRelaySettings.SetDefaults()
+	}
+}
+
+type DisplaySettings struct {
+	ExperimentalTimezone *bool
+}
+
+func (s *DisplaySettings) SetDefaults() {
+	if s.ExperimentalTimezone == nil {
+		s.ExperimentalTimezone = NewBool(false)
+	}
+}
+
+type TimezoneSettings struct {
+	SupportedTimezonesPath *string
+}
+
+func (s *TimezoneSettings) SetDefaults() {
+	if s.SupportedTimezonesPath == nil {
+		s.SupportedTimezonesPath = NewString(TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH)
 	}
 }
 
@@ -1645,6 +1767,8 @@ type Config struct {
 	MessageExportSettings MessageExportSettings
 	JobSettings           JobSettings
 	PluginSettings        PluginSettings
+	DisplaySettings       DisplaySettings
+	TimezoneSettings      TimezoneSettings
 }
 
 func (o *Config) Clone() *Config {
@@ -1656,12 +1780,8 @@ func (o *Config) Clone() *Config {
 }
 
 func (o *Config) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func (o *Config) GetSSOService(service string) *SSOSettings {
@@ -1678,14 +1798,9 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 }
 
 func ConfigFromJson(data io.Reader) *Config {
-	decoder := json.NewDecoder(data)
-	var o Config
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Config
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *Config) SetDefaults() {
@@ -1723,6 +1838,8 @@ func (o *Config) SetDefaults() {
 	o.JobSettings.SetDefaults()
 	o.WebrtcSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
+	o.TimezoneSettings.SetDefaults()
+	o.DisplaySettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -1732,6 +1849,10 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
+		return NewAppError("Config.IsValid", "Allowing cookies for subdomains requires SiteURL to be set.", nil, "", http.StatusBadRequest)
 	}
 
 	if err := o.TeamSettings.isValid(); err != nil {
@@ -2041,8 +2162,30 @@ func (ss *ServiceSettings) isValid() *AppError {
 		}
 	}
 
+	if len(*ss.WebsocketURL) != 0 {
+		if _, err := url.ParseRequestURI(*ss.WebsocketURL); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	if len(*ss.ListenAddress) == 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED &&
+		*ss.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_ON &&
+		*ss.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_OFF {
+		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	switch *ss.ImageProxyType {
+	case "":
+	case "atmos/camo":
+		if *ss.ImageProxyOptions == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)
+		}
+	default:
+		return NewAppError("Config.IsValid", "model.config.is_valid.image_proxy_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -2121,6 +2264,24 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, err.Error(), http.StatusBadRequest)
 		} else if mes.BatchSize == nil || *mes.BatchSize < 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
+		} else if mes.ExportFormat == nil || (*mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_ACTIANCE && *mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_GLOBALRELAY) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.export_type.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if *mes.ExportFormat == COMPLIANCE_EXPORT_TYPE_GLOBALRELAY {
+			if mes.GlobalRelaySettings == nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.config_missing.app_error", nil, "", http.StatusBadRequest)
+			} else if mes.GlobalRelaySettings.CustomerType == nil || (*mes.GlobalRelaySettings.CustomerType != GLOBALRELAY_CUSTOMER_TYPE_A9 && *mes.GlobalRelaySettings.CustomerType != GLOBALRELAY_CUSTOMER_TYPE_A10) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type.app_error", nil, "", http.StatusBadRequest)
+			} else if mes.GlobalRelaySettings.EmailAddress == nil || !strings.Contains(*mes.GlobalRelaySettings.EmailAddress, "@") {
+				// validating email addresses is hard - just make sure it contains an '@' sign
+				// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.email_address.app_error", nil, "", http.StatusBadRequest)
+			} else if mes.GlobalRelaySettings.SmtpUsername == nil || *mes.GlobalRelaySettings.SmtpUsername == "" {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.smtp_username.app_error", nil, "", http.StatusBadRequest)
+			} else if mes.GlobalRelaySettings.SmtpPassword == nil || *mes.GlobalRelaySettings.SmtpPassword == "" {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.smtp_password.app_error", nil, "", http.StatusBadRequest)
+			}
 		}
 	}
 	return nil

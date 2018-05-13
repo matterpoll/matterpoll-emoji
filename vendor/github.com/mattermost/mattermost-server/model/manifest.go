@@ -13,15 +13,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const (
-	PLUGIN_CONFIG_TYPE_TEXT      = "text"
-	PLUGIN_CONFIG_TYPE_BOOL      = "bool"
-	PLUGIN_CONFIG_TYPE_RADIO     = "radio"
-	PLUGIN_CONFIG_TYPE_DROPDOWN  = "dropdown"
-	PLUGIN_CONFIG_TYPE_GENERATED = "generated"
-	PLUGIN_CONFIG_TYPE_USERNAME  = "username"
-)
-
 type PluginOption struct {
 	// The display name for the option.
 	DisplayName string `json:"display_name" yaml:"display_name"`
@@ -142,43 +133,25 @@ type ManifestWebapp struct {
 }
 
 func (m *Manifest) ToJson() string {
-	b, err := json.Marshal(m)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(m)
+	return string(b)
 }
 
 func ManifestListToJson(m []*Manifest) string {
-	b, err := json.Marshal(m)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(m)
+	return string(b)
 }
 
 func ManifestFromJson(data io.Reader) *Manifest {
-	decoder := json.NewDecoder(data)
-	var m Manifest
-	err := decoder.Decode(&m)
-	if err == nil {
-		return &m
-	} else {
-		return nil
-	}
+	var m *Manifest
+	json.NewDecoder(data).Decode(&m)
+	return m
 }
 
 func ManifestListFromJson(data io.Reader) []*Manifest {
-	decoder := json.NewDecoder(data)
 	var manifests []*Manifest
-	err := decoder.Decode(&manifests)
-	if err == nil {
-		return manifests
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&manifests)
+	return manifests
 }
 
 func (m *Manifest) HasClient() bool {
@@ -191,6 +164,11 @@ func (m *Manifest) ClientManifest() *Manifest {
 	cm.Name = ""
 	cm.Description = ""
 	cm.Backend = nil
+	if cm.Webapp != nil {
+		cm.Webapp = new(ManifestWebapp)
+		*cm.Webapp = *m.Webapp
+		cm.Webapp.BundlePath = "/static/" + m.Id + "_bundle.js"
+	}
 	return cm
 }
 
