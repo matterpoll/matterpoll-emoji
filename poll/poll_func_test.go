@@ -137,7 +137,8 @@ func sendHttpRequest(require *require.Assertions, ps *poll.Server, payload strin
 	recorder := httptest.NewRecorder()
 	ps.Cmd(recorder, r)
 	header = recorder.Header()
-	response = model.CommandResponseFromJson(recorder.Result().Body)
+	response, err = model.CommandResponseFromJson(recorder.Result().Body)
+	require.Nil(err)
 	require.NotNil(response)
 	return
 }
