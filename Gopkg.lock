@@ -2,31 +2,26 @@
 
 
 [[projects]]
-  branch = "master"
-  name = "github.com/alecthomas/log4go"
-  packages = ["."]
-  revision = "d146e6b86faab5f7e4d135cc63b749d74bf0d4a6"
-
-[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/gorilla/websocket"
   packages = ["."]
-  revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
-  version = "v1.2.0"
+  revision = "5ed622c449da6d44c3c8329331ff47a9e5844f71"
 
 [[projects]]
   name = "github.com/mattermost/mattermost-server"
   packages = [
     "model",
+    "utils/jsonutils",
     "utils/markdown"
   ]
-  revision = "416c7523c3097af6759b7c40075df51d44624672"
-  version = "v4.9.2"
+  revision = "85a75526c7c03fca1d14a39cfb3f2638d98d3fe1"
+  version = "v5.0.0"
 
 [[projects]]
   name = "github.com/nicksnyder/go-i18n"
@@ -48,8 +43,14 @@
 [[projects]]
   name = "github.com/pelletier/go-toml"
   packages = ["."]
-  revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
-  version = "v1.1.0"
+  revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
+  version = "v1.2.0"
+
+[[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -63,8 +64,8 @@
     "assert",
     "require"
   ]
-  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
-  version = "v1.2.1"
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
 
 [[projects]]
   branch = "master"
@@ -73,7 +74,7 @@
     "bcrypt",
     "blowfish"
   ]
-  revision = "4ec37c66abab2c7e02ae775328b2ff001c3f025a"
+  revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -84,6 +85,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8fc1b2d2843841ca474201bdfabc14967148a9c2ea3d98e2b2bc1c0db44c5a29"
+  inputs-digest = "ce584080647f6fe590484bd3ca4007f532b9c8efebe9916e091421ec94b7e037"
   solver-name = "gps-cdcl"
   solver-version = 1
