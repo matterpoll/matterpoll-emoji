@@ -1,3 +1,11 @@
+# DEPRECATED: This repository is no longer maintained.
+
+We are focusing on https://github.com/matterpoll/matterpoll. 
+
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
+
+---
+
 # matterpoll-emoji
 
 [![Build Status](https://travis-ci.org/kaakaa/matterpoll-emoji.svg?branch=master)](https://travis-ci.org/kaakaa/matterpoll-emoji)
