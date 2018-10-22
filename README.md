@@ -1,6 +1,6 @@
 # DEPRECATED: This repository is no longer maintained.
 
-We are focusing on https://github.com/matterpoll/matterpoll. 
+Please consider using [Matterpoll](https://github.com/matterpoll/matterpoll) a Mattermost plugin instead.
 
 [![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 
