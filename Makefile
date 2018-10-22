@@ -25,7 +25,7 @@ coverage:
 	go tool cover -html=coverage.txt
 
 install-tools:
-	go get -u github.com/golang/lint/golint
+	go get -u golang.org/x/lint/golint
 
 update-deps:
 	dep ensure

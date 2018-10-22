@@ -1,7 +1,8 @@
 language: go
 go:
-  - "1.9"
-  - "1.10"
+  - "1.9.x"
+  - "1.10.x"
+  - "1.11.x"
 
 install:
   - make install-tools
@@ -30,4 +31,4 @@ VobXYwjw5zpOulnfLIGzQnZsXbgqwBCF3Wee8JRrYQWXvBlvs="
   file: 'dist/*.{tar.gz,zip}'
   on:
     tags: true
-    go: '1.9'
+    go: "1.11"
