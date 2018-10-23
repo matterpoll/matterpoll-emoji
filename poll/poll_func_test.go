@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kaakaa/matterpoll-emoji/poll"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/matterpoll/matterpoll-emoji/poll"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## 0.1.1 – 2018-01-06
 ### Fixed
-- Set content type to `application/json`([#89](https://github.com/kaakaa/matterpoll-emoji/pull/89))
+- Set content type to `application/json`([#89](https://github.com/matterpoll/matterpoll-emoji/pull/89))
 - Updated dependencies
 
 ## 0.1.0 – 2017-08-28

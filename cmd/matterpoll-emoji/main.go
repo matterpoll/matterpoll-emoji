@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/kaakaa/matterpoll-emoji/poll"
+	"github.com/matterpoll/matterpoll-emoji/poll"
 )
 
 var config = flag.String("c", "config.json", "optional path to the config file")

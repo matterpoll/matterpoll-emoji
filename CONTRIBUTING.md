@@ -4,7 +4,7 @@ We welcome pull requests from everyone.
 
 Fork, then clone the repo:
 
-    git clone https://github.com/kaakaa/matterpoll-emoji.git
+    git clone https://github.com/matterpoll/matterpoll-emoji.git
 
 Make sure the tests pass:
 
@@ -14,7 +14,7 @@ Make your change. Add tests for your change. Make the tests pass:
 
     make check-style test
 
-Push to your fork and [submit a pull request](https://github.com/kaakaa/matterpoll-emoji/compare/)
+Push to your fork and [submit a pull request](https://github.com/matterpoll/matterpoll-emoji/compare/)
 
 ## TIPS
 
