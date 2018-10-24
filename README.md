@@ -8,7 +8,7 @@ Please consider using [Matterpoll](https://github.com/matterpoll/matterpoll) a M
 
 # matterpoll-emoji
 
-[![Build Status](https://travis-ci.org/matterpoll/matterpoll-emoji.svg?branch=master)](https://travis-ci.org/matterpoll/matterpoll-emoji)
+[![Build Status](https://travis-ci.com/matterpoll/matterpoll-emoji.svg?branch=master)](https://travis-ci.com/matterpoll/matterpoll-emoji)
 [![codecov](https://codecov.io/gh/matterpoll/matterpoll-emoji/branch/master/graph/badge.svg)](https://codecov.io/gh/matterpoll/matterpoll-emoji)
 [![Go Report Card](https://goreportcard.com/badge/github.com/matterpoll/matterpoll-emoji)](https://goreportcard.com/report/github.com/matterpoll/matterpoll-emoji)
 [![Releases](https://img.shields.io/github/release/matterpoll/matterpoll-emoji.svg)](https://github.com/matterpoll/matterpoll-emoji/releases/latest)
