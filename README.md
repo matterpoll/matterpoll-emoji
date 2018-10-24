@@ -8,10 +8,10 @@ Please consider using [Matterpoll](https://github.com/matterpoll/matterpoll) a M
 
 # matterpoll-emoji
 
-[![Build Status](https://travis-ci.org/kaakaa/matterpoll-emoji.svg?branch=master)](https://travis-ci.org/kaakaa/matterpoll-emoji)
-[![Code Coverage](https://codecov.io/gh/kaakaa/matterpoll-emoji/branch/master/graph/badge.svg)](https://codecov.io/gh/kaakaa/matterpoll-emoji/branch/master)
-[![Go Report Card](https://goreportcard.com/badge/github.com/kaakaa/matterpoll-emoji)](https://goreportcard.com/report/github.com/kaakaa/matterpoll-emoji)
-[![Releases](https://img.shields.io/github/release/kaakaa/matterpoll-emoji.svg)](https://github.com/kaakaa/matterpoll-emoji/releases/latest)
+[![Build Status](https://travis-ci.com/matterpoll/matterpoll-emoji.svg?branch=master)](https://travis-ci.com/matterpoll/matterpoll-emoji)
+[![codecov](https://codecov.io/gh/matterpoll/matterpoll-emoji/branch/master/graph/badge.svg)](https://codecov.io/gh/matterpoll/matterpoll-emoji)
+[![Go Report Card](https://goreportcard.com/badge/github.com/matterpoll/matterpoll-emoji)](https://goreportcard.com/report/github.com/matterpoll/matterpoll-emoji)
+[![Releases](https://img.shields.io/github/release/matterpoll/matterpoll-emoji.svg)](https://github.com/matterpoll/matterpoll-emoji/releases/latest)
 
 Polling feature for Mattermost's custom slash command.
 
@@ -28,7 +28,7 @@ Polling feature for Mattermost's custom slash command.
 Create a `Custom Slash Command` from Integration > Slash Commands > Add Slash Command.
 
 * DisplayName - `Matterpoll`
-* Description - `Polling feature by https://github.com/kaakaa/matterpoll-emoji`
+* Description - `Polling feature by https://github.com/matterpoll/matterpoll-emoji`
 * Command Trigger Word - `poll`
 * Request URL - `http://localhost:8505/poll`
 * Request Method - `POST`
@@ -46,7 +46,7 @@ Copy the Token from your newly created slash command
 
 #### Run pre compiled release
 
-Download the latest version at https://github.com/kaakaa/matterpoll-emoji/releases/latest.
+Download the latest version at https://github.com/matterpoll/matterpoll-emoji/releases/latest.
 Decompress it and change parameter in `config.json` as you need them
 ```
 {
@@ -68,8 +68,8 @@ Run the server
 
 Clone this repository and checkout the latest release. You can just use the master branch but it can be unstable.
 ```
-go get -u github.com/kaakaa/matterpoll-emoji
-cd $GOPATH/src/github.com/kaakaa/matterpoll-emoji
+go get -u github.com/matterpoll/matterpoll-emoji
+cd $GOPATH/src/github.com/matterpoll/matterpoll-emoji
 git checkout $(git describe --tags)
 ```
 Copy the default config
@@ -104,7 +104,7 @@ Typing this on Mattermost
 
 then posting poll comment
 
-![screen_shot](https://raw.githubusercontent.com/kaakaa/matterpoll-emoji/master/matterpoll-emoji.png)
+![screen_shot](https://raw.githubusercontent.com/matterpoll/matterpoll-emoji/master/matterpoll-emoji.png)
 
 You can use `"` or `'` instead of `` ` ``
 
