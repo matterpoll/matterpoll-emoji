@@ -27,5 +27,5 @@ deploy:
   file_glob: true
   file: 'dist/*.{tar.gz,zip}'
   on:
+    repo: matterpoll/matterpoll-emoji
     tags: true
-    go: "1.11"
